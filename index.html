@@ -689,33 +689,36 @@
   const P = {
     "wood-river": { name: `Wood River Furniture`, stack: `Next.js · React · Square · Resend · PostHog`, site: `https://woodriverfurniture.com`, md: `# Wood River Furniture
 
-The website for my dad's furniture and cabinetry business in St. George. It has
-a gallery of past work, a shop, a cart, and a working checkout that takes card
-payments through Square and emails the order to both the customer and the shop.
+This is the website I built for my dad’s furniture and cabinetry business in
+St. George. It includes a gallery of previous work, an online shop, a cart, and
+a full checkout system. Customers can pay by card through Square, and once an
+order goes through, confirmation emails are sent to both the customer and the
+shop.
 
 ## Pricing
 
-I don't let the browser tell the server what anything costs. The cart sends
-product ids, and the server looks each price up itself, applies whatever option
-changes it (wood species, dimensions), and recalculates the line totals and tax
-before it builds the Square payment. Editing the cart in devtools only changes
-what's on screen.
+All of the pricing is handled on the server instead of trusting whatever gets
+sent from the browser. The cart only sends product IDs and selected options. The
+server looks up the actual price, adjusts it based on things like wood species
+or dimensions, calculates tax, and then creates the Square payment.
+
+So even if someone edits the cart or prices in devtools, it only changes what
+they see on their screen. It doesn’t change what they actually get charged.
 
 ## Tech Stack
+
 - Next.js
 - React
-- Square (payments)
-- Resend (order email)
+- Square
+- Resend
 - PostHog
 - Railway
 
 ## Note
 
-It's a real client site, so the source is private. The site is live and the
-orders are real ones going to my dad's shop.
-
-## Link
-https://woodriverfurniture.com
+This is a real client site for my dad’s business, so the source code is private.
+The site is live, and any orders placed through it are real orders that go
+directly to the shop.
 ` },
     "family-hub": { name: `Family Hub`, stack: `Rust · Axum · PostgreSQL · React`, shots: [
       { file: `home.webp`,     src: `screenshots/hub-home.webp`,     alt: `Tonight's dinner on the kitchen display` },
