@@ -30,8 +30,18 @@ function project(key) {
     name: tpl(seg, "name:"),
     stack: tpl(seg, "stack:"),
     site: beforeMd.includes("site:") ? tpl(seg, "site:") : null,
+    resumeBlurb: beforeMd.includes("resumeBlurb:") ? tpl(beforeMd, "resumeBlurb:") : null,
     md: tpl(seg, "md:"),
   };
+}
+
+/**
+ * Resume description. A project can set `resumeBlurb:` (before `md:`) when the
+ * README's opening paragraph is written for the site and reads wrong on one
+ * line of a resume; otherwise the opener is used.
+ */
+function description(p) {
+  return p.resumeBlurb || blurb(p.md);
 }
 
 /** First real prose paragraph: skip the H1 and any image-only lines. */
@@ -126,7 +136,7 @@ ${whereAt ? `<p class="meta">${esc(whereAt.prose.join(" "))}</p>` : ""}
 ${projects.map(p => `<div class="proj">
   <h3>${esc(p.name)}${p.site ? ` &mdash; <a href="${esc(p.site)}">${esc(p.site.replace(/^https?:\/\//, ""))}</a>` : ""}</h3>
   <p class="stack">${esc(p.stack)}</p>
-  <p>${esc(blurb(p.md))}</p>
+  <p>${esc(description(p))}</p>
 </div>`).join("\n")}
 
 <h2>Skills</h2>
