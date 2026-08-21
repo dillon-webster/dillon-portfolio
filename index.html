@@ -1024,46 +1024,40 @@ https://github.com/dillon-webster/media-dashboard
 
 ![Dillon Webster](me.webp)
 
-I'm Dillon Webster, and most of what I build ends up being used by someone. My
-dad's furniture shop takes card payments through code I wrote. The house runs
-its dinners and its shopping list off a Rust app on the kitchen wall. A few
-friends and I read books through a server in my closet.
+I'm Dillon Webster. I'm studying software development at Dixie Technical College
+in St. George, Utah, and I graduate in December 2026.
+
+Outside of school, I'm usually working on a project or doing something with my
+home server. I also spend a lot of time around furniture and woodworking through
+my family's business.
 
 ## Self-hosting
 
-That server is most of the story. One Ubuntu box, around fifteen containers: the
-book club, the photo library, the family hub, Jellyfin, a password manager, a
-handful of smaller apps, most of them with their own Postgres. A 4.6TB array
-holds the media. An Uptime Kuma instance tells me when something I wrote has
-fallen over, which is usually how I find out. There's no monitor attached to it.
-Everything happens over SSH from whichever machine I'm sitting at, and code goes
-up from my laptop rather than getting edited in place.
+I got into self-hosting because I liked the idea of running my own apps instead
+of relying on somebody else's service for everything.
 
-Remote access runs over a tailnet. The only thing I deliberately publish is a
-Cloudflare tunnel carrying two hostnames, and it returns 404 for anything not on
-that list. The password manager is one of them, because being able to reach it
-from anywhere is the whole point of running it. Nothing else has needed to be.
+What started as one or two things turned into a full home server. I use it for
+Jellyfin, photos, passwords, a few apps I've built, and some stuff I share with
+family and friends.
 
-Running things unattended is where I've learned the most, because nothing gets to
-be a demo. An encode has to survive me closing the browser, so jobs run detached
-with their own log file and a row in SQLite. The machine can't suspend halfway
-through, so systemd-inhibit holds it awake. After a reboot Linux starts handing
-out pids from the bottom again, which means a job still marked "running" can be
-pointing at some unrelated process that inherited its number, and hitting Stop
-would kill that one instead. Storing the boot id and the process start time next
-to the pid closes it.
+Most of the time I'm managing it through SSH, updating containers, or trying to
+figure out why something stopped working.
+
+It's probably where I've learned the most outside of school. Running something
+all the time is a lot different than getting it to work once on your own
+computer. I've had to learn Docker, Linux, networking, databases, storage,
+backups, and how to keep things running without constantly checking on them.
 
 ## Where I'm at
 
-Studying software development at Dixie Technical College in St. George, Utah,
-graduating in December 2026. Looking for an internship or a junior developer
-role.
+I'm currently looking for an internship or junior developer role.
 
 ## Languages
 
-Python. I'm learning TypeScript now.
+Python is the language I'm most comfortable with right now, and I'm learning
+TypeScript.
 
-Comfortable with PostgreSQL, Docker and Linux.
+I'm also comfortable with PostgreSQL, Docker, and Linux.
 `;
   const CONTACT = `# contact.md
 
