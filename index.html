@@ -957,22 +957,23 @@ Private repo for now. Happy to walk through the ingest layer.
       { file: `transfer.jpg`, src: `screenshots/md-transfer.webp`, alt: `Moving files between the PC and the home server` }
     ], md: `# media-dashboard
 
-The web panel I use to drive the media side of things: ripping discs, encoding,
-and moving files between my PC and the home server. It doesn't replace the
-scripts I already had, it's a safe front end over them.
+A web panel I use for the media stuff on my PC: ripping discs, encoding, and
+moving files to and from my home server. I already had scripts for all of it.
+This is a front end over them.
 
 ![A rip in progress, tracked in the job list](screenshots/md-jobs.webp)
 
 ## Jobs
 
-Every rip, encode and transfer runs detached, with its own log file and a row in
-SQLite. A three hour encode keeps going if I close the browser, restart the
-panel, or reboot the machine. systemd-inhibit holds the box awake so it can't
-suspend halfway through.
+Every rip, encode and transfer runs detached. Each one gets its own log file and
+a row in SQLite.
 
-The list also picks up processes the dashboard didn't start. An encode I kick
-off from the terminal shows up alongside the rest, because what I want from that
-page is everything running on the machine, however it got there.
+So a three hour encode keeps going if I close the browser, restart the panel, or
+reboot the machine. I use systemd-inhibit to keep the box from suspending in the
+middle of one.
+
+The list also shows processes the dashboard didn't start. If I kick off an
+encode from the terminal, it shows up with everything else.
 
 ## Stopping the right process
 
@@ -984,30 +985,33 @@ signalled.
 
 ## Ripping
 
-MakeMKV does the ripping. The dashboard's job is deciding what the titles are
-called. For a TV disc it looks the episode list up on TMDB under the show name
-instead of trusting the disc label, matches titles to episodes on their content
-rather than their order, and shows me the mapping before a single file reaches
-Jellyfin. Box set discs that run past the end of a season get both seasons'
-lists, so each title lands where it belongs.
+MakeMKV does the actual ripping. The part I wrote is what happens after, which
+is working out what each title should be called.
+
+For a TV disc it looks the episode list up on TMDB under the show name instead
+of trusting the disc label, and matches titles to episodes by their content. It
+shows me the mapping before anything gets moved into Jellyfin.
+
+Some box set discs run past the end of a season. Those get both seasons'
+episode lists, so each title still lands in the right place.
 
 ![Telling the ripper what disc is in the drive](screenshots/md-ripper.webp)
 
 ## Moving files
 
-Pulling a season down from the home server or pushing one up is a job like
-everything else, so a large copy survives the browser closing the same way an
-encode does.
+Pulling a season down from the home server or pushing one up runs as a job like
+everything else, so a big copy keeps going if I close the browser.
 
 ![Moving files between the PC and the home server](screenshots/md-transfer.webp)
 
 ## Access
 
-Living on the tailnet decides which machines can reach the panel. It says
-nothing about which page is doing the asking, and any site open in a browser on
-one of my devices can POST to it, since a cross-origin form needs no preflight.
-So every request gets its Host and Origin checked. Show names reach commands as
-arguments, so nothing I type lands inside a shell string.
+The panel only lives on my tailnet, so only my machines can reach it. That still
+leaves a gap. Any site open in a browser on one of those machines can POST to
+it, because a cross-origin form doesn't trigger a preflight.
+
+So I check the Host and Origin headers on every request. Show names get passed
+to commands as arguments, so nothing I type ends up inside a shell string.
 
 ## Tech Stack
 - Python, standard library only (no pip install to break on a new interpreter)
