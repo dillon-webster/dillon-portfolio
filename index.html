@@ -728,9 +728,9 @@ cheaper, but it won’t change what the server actually charges them.
       { file: `tasks.jpg`,    src: `screenshots/hub-tasks.webp`,    alt: `The household task board` }
     ], md: `# Family Hub
 
-An iPad bolted to the kitchen wall that never sleeps, and whatever phone is
-nearest. It runs the week's dinners, the shopping list, the calendar and the
-household jobs. Plan a dinner on the phone and the wall has it a second later.
+An iPad on the kitchen wall, plus whatever phone is closest. It runs the week's
+dinners, the shopping list, the calendar and the household jobs. If someone
+plans a dinner on their phone, the wall has it a second later.
 
 ![Tonight's dinner on the kitchen display](screenshots/hub-home.webp)
 ![The shopping list, rebuilt from the week's plan](screenshots/hub-shopping.webp)
@@ -740,48 +740,49 @@ household jobs. Plan a dinner on the phone and the wall has it a second later.
 
 ## Why
 
-Before this it all lived in the Notes app. We planned the meals in one note and
-typed the shopping list into another, both by hand, and keeping the two in
-agreement was by hand too. That's the whole reason this exists.
+Before this it all lived in the Notes app. We had one note for the meal plan and
+another for the shopping list. Both got typed by hand, and keeping them lined up
+with each other was by hand too.
 
 ## Shopping list
 
-Nothing called a shopping list is ever written to the database. It gets rebuilt
-from the meal plan every time someone opens the page, so it can't drift out of
-sync with the plan. There's nothing there to drift.
+The shopping list gets rebuilt from the meal plan every time someone opens the
+page. It never gets written to the database, so it can't fall out of sync with
+the plan.
 
-What does get stored is the part the plan can't tell you: what's already in the
-cupboard, what's been crossed off, and whatever someone typed in standing in an
-aisle.
+A few things do get stored: what we already have in the cupboard, what's been
+crossed off, and anything someone adds to the list by hand.
 
 ## Ingredients
 
-"garlic, thinly sliced" and "garlic, halved" are the same garlic. Everything
-past the first comma is prep, so I cut there and merge on what's left. That line
-comes out as "2 cloves + 1 head · 2 meals".
+"garlic, thinly sliced" and "garlic, halved" should end up on the same line.
+Everything past the first comma is prep, so I cut there and merge on what's
+left. That line comes out as "2 cloves + 1 head · 2 meals".
 
-Amounts get listed instead of added. Cloves and heads and "a splash" don't sum,
-and two numbers that are both right beat one that's confidently wrong.
+I list the amounts instead of adding them up. Cloves and heads and "a splash"
+don't add together, so I'd rather show both numbers than guess at a total.
 
 ## Eating out
 
 A night can be planned and have no cooking in it. Marking one "eating out"
-counts toward "4 of 7 planned" and puts nothing on the list. Otherwise a planned
-night out reads as an empty night and the week looks half-finished when it isn't.
+counts toward "4 of 7 planned" and puts nothing on the shopping list. Without
+that, a night out looks the same as a night nobody has planned yet.
 
 ## Recipes from a photo
 
-Point a phone at a cookbook page and it comes back as a structured recipe.
-There's no official Anthropic SDK for Rust, so this is plain HTTP against the
-Messages API. Structured outputs pin the response to the recipe schema, so
-there's no prose to strip and no malformed JSON to repair.
+I can point my phone at a cookbook page and get a structured recipe back. There
+is no official Anthropic SDK for Rust, so this is plain HTTP against the
+Messages API. Structured outputs make the response come back in the recipe
+schema, so there's no prose to strip out and no broken JSON to fix.
 
 ## Calendar
 
-ICS feeds get pulled on a timer and mirrored locally, keyed on the feed plus the
-event's UID so a re-sync overwrites rather than piling up duplicates. Recurring
-events are expanded into real occurrences inside a bounded window. The hub only
-ever shows a week, so there's no reason to expand further than that.
+ICS feeds get pulled on a timer and copied into the database. Each event is
+keyed on the feed plus its UID, so a re-sync overwrites what's already there
+instead of piling up duplicates.
+
+Recurring events get expanded into real occurrences inside a set window. The hub
+only ever shows a week, so there's no reason to go further than that.
 
 ## Tech Stack
 - Rust + Axum
@@ -808,33 +809,35 @@ a feed showing what everyone else is up to. Invite only.
 
 ## Why it exists
 
-Calibre-Web and Kavita are already good, but they're built for managing a big
-library. I wanted the book club half, so that's all this does. It won't convert
-formats or handle comics. Deciding that up front kept it small enough to finish.
+Calibre-Web and Kavita already do this well, but they're built for managing a
+big library. I only wanted the book club part, so that's what I built. It
+doesn't convert formats and it doesn't handle comics. I kept the scope that
+small so I would actually finish it.
 
 ## Getting in
 
-The first time it starts with no users, every sign-in path redirects to a setup
-page that creates the admin account and the club's invite code in the browser.
-There's no default password sitting there waiting to be changed and no
-first-run command to remember.
+The first time it runs there are no users, so every sign-in path sends you to a
+setup page. You create the admin account and the club's invite code there, in
+the browser. I didn't want a default password sitting in a config file, or a
+first-run command you have to go look up.
 
-After that, signing up needs the invite code, so being reachable on the internet
-doesn't mean being open. That matters because people put this behind whatever
-they already have, whether that's a tailnet, a reverse proxy or a tunnel.
+Signing up after that requires the invite code, so somebody who finds the URL
+still can't make an account. People run this behind a tailnet, a reverse proxy
+or a tunnel, and I didn't want the sign-up page to be the weak spot in that.
 
 ## Where the books live
 
-EPUBs sit on disk rather than in Postgres, and every read or write goes through
-one storage module. Pointing STORAGE_DIR at a different disk moves the whole
-library without changing anything that reads from it.
+EPUBs sit on disk instead of in Postgres, and every read and write goes through
+one storage module. If I point STORAGE_DIR at a different disk, the whole
+library moves and nothing that reads from it has to change.
 
 ## Running it somewhere else
 
-It's built as a container and published to GitHub's registry, with a compose
-file, a license and setup docs, so it's something another person can actually
-stand up. Mine runs on the home server with friends on my tailnet, who reach it
-by the machine's Tailscale name. Nothing is open to the internet.
+It builds as a container and gets published to GitHub's registry. There's a
+compose file, a license and setup docs, so somebody else can stand it up.
+
+Mine runs on the home server. My friends are on my tailnet and reach it by the
+machine's Tailscale name. Nothing is open to the internet.
 
 ## Tech Stack
 - Next.js 16
@@ -853,13 +856,13 @@ https://github.com/dillon-webster/chapterhouse
     ], md: `# Madden News Network
 
 A league tracker for the Madden franchise a friend and I play. The Madden
-Companion App exports your league somewhere; this catches that export, stores it
-properly, and runs the league off it: standings, results, a Discord bot you can
-file a game to from your phone, and a written weekly edition.
+Companion App exports your league, and this catches that export, stores it, and
+runs the league off it: standings, results, a Discord bot for filing a game from
+your phone, and a written weekly edition.
 
 None of it is real news. It's a two-person franchise league in a video game, the
 teams are the ones that ship with it, and every word of the writing is model
-output. The site says as much in its own footer.
+output. The site says the same in its footer.
 
 ![The weekly edition, written by the model](screenshots/mnn-edition.webp)
 
@@ -867,77 +870,73 @@ output. The site says as much in its own footer.
 
 ## The export feed
 
-EA doesn't publish that payload and doesn't hold it still between title updates.
-So the schema lives in one generated file built from real captured exports, and
-both the table definitions and the upserts are derived from it. When a field
-changes I edit one place.
+EA doesn't publish the format for that payload, and it changes between title
+updates. So I generate the schema from real captured exports into one file, and
+both the table definitions and the upserts come from it. When a field changes I
+edit one place.
 
-Anything I had to work out by hand stays out of that file, because regenerating
-it would wipe it. The one worth telling: winLossStreak arrives as an unsigned
-byte, so a losing streak wraps past 127 and 255 actually means "lost one
-straight". Believed at face value it renders a 255 game win streak and poisons
-whatever gets written from it. The fields sitting right next to it are properly
-signed, so it's a quirk of that one field and not a rule about the feed. Team
-ids get the same suspicion, since EA's id isn't stable across title updates. It
-gets stored as ea_team_id and never used as a primary key.
+Anything I worked out by hand stays out of that file, because regenerating it
+would wipe it. The main one is winLossStreak, which arrives as an unsigned byte.
+A losing streak wraps past 127, so 255 means the team has lost one in a row. If
+I took that at face value the site would show a 255 game win streak. The fields
+next to it are signed properly, so this is specific to that one field.
+
+I treat EA's team id the same way. It isn't stable across title updates, so I
+store it as ea_team_id and never use it as a primary key.
 
 ## Storylines
 
-The league remembers things. A SQL pass over finished games looks for patterns
-in what already happened, like a kicker who has missed in three of the last four
-weeks or a team on a five game slide, and records each one with a heat value
-that climbs while the pattern holds and decays when it stops. Detection is
-idempotent per week, so re-syncing an export doesn't double-count a streak or
-duplicate a beat.
+A SQL pass over finished games looks for patterns, like a kicker who has missed
+in three of the last four weeks or a team on a five game slide. Each one gets a
+heat value that climbs while the pattern holds and decays when it stops.
+Detection is idempotent per week, so re-syncing an export doesn't double-count a
+streak.
 
-That table is the league's whole memory and almost none of it goes anywhere.
-Before a story is written I pull only the arcs involving the teams playing that
-week, hottest first, hard-capped at a handful. Widening that cap is the fastest
-way to make this expensive, so it stays small. A running joke can also be
-retired by hand, which drops it out of selection entirely instead of leaving it
-to fade.
+Most of that table never gets used. Before a story is written I pull only the
+arcs involving the teams playing that week, hottest first, with a hard cap of a
+handful. I can also retire a running joke by hand, which takes it out of
+selection.
 
 ## Writing the edition
 
-Everything the model sees is a fact packet assembled from Postgres: one week of
-games, a dozen standings lines, and those few storylines. It's a few kilobytes
-whether the league is two seasons old or ten, so the cost doesn't grow with the
-history. It also means anything the finished prose states either came from the
-packet or was made up, which is what makes checking it afterwards possible.
+The model only sees a fact packet built from Postgres: one week of games, a
+dozen standings lines, and those few storylines. It's a few kilobytes whether
+the league is two seasons old or ten, so the cost doesn't grow as the history
+does. It also means anything in the finished prose either came from the packet
+or was invented, which is what lets me check it afterwards.
 
-Two requests a week. One flagship call writes the whole edition, covering the
-lead story, the human games, power rankings, the standings narrative, next
-week's preview and the prompt for the cover art. One cheap call handles every
-CPU-vs-CPU recap in a single batch. Adding teams doesn't change that.
+There are two requests a week. One flagship call writes the whole edition, which
+covers the lead story, the human games, power rankings, the standings narrative,
+next week's preview and the prompt for the cover art. A cheaper call handles all
+the CPU-vs-CPU recaps in one batch.
 
-Replies come back through structured outputs against Zod schemas, so what I
-parse is an object. Games are referenced by id rather than by matchup, because
-the model has no business emitting a score. Scores, records and stat lines
-aren't stored on the story at all; the page renders them from the canonical
-tables, so an edition published in week 3 still shows correct numbers in week 12.
+Replies come back through structured outputs against Zod schemas, so I parse an
+object. Games get referenced by id instead of by matchup, so the model never
+writes a score itself. Scores, records and stat lines aren't stored on the story
+at all. The page renders those from the canonical tables, so an edition
+published in week 3 still shows the right numbers in week 12.
 
-## The fact guard
+## Checking the numbers
 
-The rule is that the model can invent quotes, rumours, hot takes and running
-jokes, but never a score, a record, a stat, or a team that doesn't exist.
-Prompting alone doesn't guarantee that, so the prose gets checked against the
-same packet the model was handed. Any "31-27" in the text has to match a real
-final from that week, any "6-1" has to match a real record, and any capitalised
-two-to-four letter token shaped like an abbreviation has to be a team in this
-league.
+The model is allowed to invent quotes, rumours, hot takes and running jokes, but
+not scores, records, stats, or teams that don't exist. Prompting doesn't
+guarantee that on its own, so I check the prose against the same packet the
+model was given. Any "31-27" has to match a real final from that week, any "6-1"
+has to match a real record, and any capitalised two-to-four letter token has to
+be a team in this league.
 
-A failure isn't fatal. It retries once with the specific complaint, and if it
-still fails the story gets stored with the warnings attached, since losing a
-whole edition over one bad number would be worse than flagging it. The packet
-that produced each story is kept as well, so a bad one can be read back later.
+If the check fails it retries once with the specific complaint. If it fails
+again the story gets stored with the warnings attached rather than thrown away.
+I keep the packet that produced each story too, so I can read a bad one back
+later.
 
 ## Filing a game
 
-Filing from Discord runs the same path as the web form, so the two can't drift,
-and it costs one round of SQL rather than a model call. What chat adds is
-carry-forward and undo: a correction typed on a phone is usually one short line,
-so a game's existing editorial fields survive unless the filing explicitly
-replaces them.
+Filing from Discord runs the same code path as the web form, so the two can't
+drift, and it costs one round of SQL instead of a model call. Discord also gets
+carry-forward and undo, since a correction typed on a phone is usually one short
+line. A game's existing editorial fields survive unless the filing replaces
+them.
 
 ## Tech Stack
 - TypeScript (~19,700 lines)
@@ -985,8 +984,8 @@ signalled.
 
 ## Ripping
 
-MakeMKV does the actual ripping. The part I wrote is what happens after, which
-is working out what each title should be called.
+I use MakeMKV to rip the disc. The dashboard then works out what each title
+should be called.
 
 For a TV disc it looks the episode list up on TMDB under the show name instead
 of trusting the disc label, and matches titles to episodes by their content. It
