@@ -874,11 +874,13 @@ updates. So I generate the schema from real captured exports into one file, and
 both the table definitions and the upserts come from it. When a field changes I
 edit one place.
 
-Anything I worked out by hand stays out of that file, because regenerating it
-would wipe it. The main one is winLossStreak, which arrives as an unsigned byte.
-A losing streak wraps past 127, so 255 means the team has lost one in a row. If
-I took that at face value the site would show a 255 game win streak. The fields
-next to it are signed properly, so this is specific to that one field.
+Fixes I work out by hand live outside that file, because regenerating it
+overwrites everything in there.
+
+winLossStreak needed one. It comes back as an unsigned byte, so a losing streak
+wraps past 127. A team that has lost one game in a row reads as 255, and the
+site would show that as a 255 game win streak. The fields around it are signed
+normally, so it's only that one field.
 
 I treat EA's team id the same way. It isn't stable across title updates, so I
 store it as ea_team_id and never use it as a primary key.
