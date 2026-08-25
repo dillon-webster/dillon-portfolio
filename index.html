@@ -703,10 +703,9 @@ the customer and the shop get an email with the order information.
 
 One thing I spent some time thinking about was how to handle pricing safely.
 
-The browser never gets to decide what a product actually costs. The cart only
-sends the product ID and the options the customer picked. The server looks up
-the real price, makes adjustments for things like wood species or dimensions,
-calculates tax, and then creates the Square payment.
+The cart only sends the product ID and the options the customer picked. The
+server looks up the real price, makes adjustments for things like wood species
+or dimensions, calculates tax, and then creates the Square payment.
 
 That way, somebody changing a price in devtools can make their cart look
 cheaper, but it won’t change what the server actually charges them.
@@ -730,7 +729,7 @@ cheaper, but it won’t change what the server actually charges them.
 
 An iPad on the kitchen wall, plus whatever phone is closest. It runs the week's
 dinners, the shopping list, the calendar and the household jobs. If someone
-plans a dinner on their phone, the wall has it a second later.
+plans a dinner on their phone, it shows up on the wall right away.
 
 ![Tonight's dinner on the kitchen display](screenshots/hub-home.webp)
 ![The shopping list, rebuilt from the week's plan](screenshots/hub-shopping.webp)
@@ -765,15 +764,14 @@ don't add together, so I'd rather show both numbers than guess at a total.
 ## Eating out
 
 A night can be planned and have no cooking in it. Marking one "eating out"
-counts toward "4 of 7 planned" and puts nothing on the shopping list. Without
-that, a night out looks the same as a night nobody has planned yet.
+counts toward "4 of 7 planned" and puts nothing on the shopping list.
 
 ## Recipes from a photo
 
 I can point my phone at a cookbook page and get a structured recipe back. There
 is no official Anthropic SDK for Rust, so this is plain HTTP against the
 Messages API. Structured outputs make the response come back in the recipe
-schema, so there's no prose to strip out and no broken JSON to fix.
+schema.
 
 ## Calendar
 
@@ -822,7 +820,7 @@ browser.
 
 Signing up after that requires the invite code, so somebody who finds the URL
 still can't make an account. People run this behind a tailnet, a reverse proxy
-or a tunnel, and I didn't want the sign-up page to be the weak spot in that.
+or a tunnel.
 
 ## Where the books live
 
@@ -904,7 +902,7 @@ The model only sees a fact packet built from Postgres: one week of games, a
 dozen standings lines, and those few storylines. It's a few kilobytes whether
 the league is two seasons old or ten, so the cost doesn't grow as the history
 does. It also means anything in the finished prose either came from the packet
-or was invented, which is what lets me check it afterwards.
+or was invented.
 
 There are two requests a week. One flagship call writes the whole edition, which
 covers the lead story, the human games, power rankings, the standings narrative,
@@ -1006,9 +1004,9 @@ everything else, so a big copy keeps going if I close the browser.
 
 ## Access
 
-The panel only lives on my tailnet, so only my machines can reach it. That still
-leaves a gap. Any site open in a browser on one of those machines can POST to
-it, because a cross-origin form doesn't trigger a preflight.
+The panel only lives on my tailnet, so only my machines can reach it. Any site
+open in a browser on one of those machines can still POST to it, because a
+cross-origin form doesn't trigger a preflight.
 
 So I check the Host and Origin headers on every request. Show names get passed
 to commands as arguments, so nothing I type ends up inside a shell string.
