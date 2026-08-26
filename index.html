@@ -85,6 +85,12 @@
     gap: 6px;
     line-height: 1.3;
   }
+  /* Icons sit in normal flow until one is dragged. At that point every icon
+     gets an explicit position, so the others don't reflow into the gap the
+     dragged one left behind. */
+  #icons.free { display: block; width: calc(100% - 28px); height: calc(100% - 36px); }
+  #icons.free .icon { position: absolute; }
+  .icon.dragging { opacity: .75; z-index: 5; cursor: grabbing; }
   .icon:hover { background: rgba(255,255,255,.07); }
   .icon:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
   .icon.sel { background: rgba(61,174,233,.20); border-color: rgba(61,174,233,.55); }
@@ -296,6 +302,7 @@
   .term .err { color: var(--rose); }
   .term .dir { color: var(--sky); font-weight: 600; }
   .term .hint { color: var(--faint); }
+  .term .mtch { background: rgba(246,199,86,.30); color: #fff; border-radius: 2px; }
   .term a { color: var(--accent); }
   .term .row { display: flex; gap: 0; }
   .term input {
@@ -409,6 +416,13 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 100%;
   }
+  .fm-find {
+    flex: none; width: 168px; margin-left: 6px;
+    background: var(--win); color: var(--text);
+    border: 1px solid var(--edge); border-radius: 3px;
+    padding: 3px 7px; font: 12.5px var(--ui);
+  }
+  .fm-find:focus { outline: none; border-color: var(--accent); }
   .fitem:hover { background: rgba(255,255,255,.06); }
   .fitem.sel { background: var(--sel); border-color: var(--edge-lt); }
   .fitem:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
@@ -614,6 +628,59 @@
   }
   .wp.on .nm { color: var(--accent); font-weight: 600; }
 
+  /* ---------- kelvin ---------- */
+  #kelvin {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: 58px; z-index: 60;
+    display: none; align-items: flex-end; gap: 8px;
+    transition: opacity 1.4s ease;
+  }
+  #kelvin.leaving { opacity: 0; }
+  /* The cheerful bob undercuts the glare, so it's swapped for a tight,
+     fast tremble. */
+  #kelvin.cross .guy { animation: kelvshake .25s ease-in-out infinite; }
+  @keyframes kelvshake {
+    0%, 100% { transform: translateX(-0.7px) rotate(-1.2deg); }
+    50%      { transform: translateX(0.7px)  rotate(1.2deg); }
+  }
+  #kelvin.on { display: flex; }
+  #kelvin .bubble {
+    position: relative; max-width: 260px;
+    background: #fbf7d8; color: #23262a;
+    border: 1px solid #b9ad6a; border-radius: 7px;
+    padding: 11px 12px 9px; font: 12.5px/1.45 var(--ui);
+    box-shadow: 0 6px 20px rgba(0,0,0,.45);
+  }
+  #kelvin .bubble:after {
+    content: ""; position: absolute; right: -7px; bottom: 16px;
+    width: 12px; height: 12px; background: #fbf7d8;
+    border-right: 1px solid #b9ad6a; border-top: 1px solid #b9ad6a;
+    transform: rotate(45deg);
+  }
+  #kelvin .bubble p { margin: 0 0 9px; }
+  #kelvin .bubble code {
+    background: rgba(0,0,0,.08); border-radius: 3px; padding: 1px 4px;
+    font: 12px var(--mono);
+  }
+  #kelvin .acts { display: flex; gap: 6px; justify-content: flex-end; }
+  #kelvin .acts button {
+    font: 11.5px var(--ui); cursor: pointer;
+    background: #ece7c4; color: #23262a;
+    border: 1px solid #b9ad6a; border-radius: 3px; padding: 3px 9px;
+  }
+  #kelvin .acts button:hover { background: #e0d9ab; }
+  #kelvin .guy {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
+    animation: kelvbob 3.4s ease-in-out infinite;
+  }
+  #kelvin .guy svg { display: block; width: 58px; height: 84px; }
+  @keyframes kelvbob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-5px) rotate(-2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { #kelvin .guy { animation: none; } }
+
   /* ---------- mobile ---------- */
   @media (max-width: 720px) {
     .window { border-radius: 0; }
@@ -626,6 +693,7 @@
     #tray .netlbl { display: none; }
     .ed-body .shots { grid-template-columns: 1fr; }
     .ed-body { padding: 14px 15px 22px; }
+    #kelvin { display: none !important; }   /* no room for him on a phone */
   }
 </style>
 
@@ -647,6 +715,39 @@
     <small>Dixie Technical College &middot; St. George, UT</small>
   </div>
   <div id="menu-items"></div>
+</div>
+
+<div id="kelvin" aria-live="polite">
+  <div class="bubble">
+    <p></p>
+    <div class="acts">
+      <button class="next">Next tip</button>
+      <button class="go">Go away</button>
+    </div>
+  </div>
+  <button class="guy" title="Kelvin" aria-label="Kelvin: next tip">
+    <svg viewBox="0 0 72 104" aria-hidden="true">
+      <defs>
+        <linearGradient id="kelvwire" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#eef3f7"/>
+          <stop offset=".45" stop-color="#a3b4c1"/>
+          <stop offset="1" stop-color="#64757f"/>
+        </linearGradient>
+      </defs>
+      <path d="M20 44 V26 a16 16 0 0 1 32 0 v56 a11 11 0 0 1-22 0 V34 a6 6 0 0 1 12 0 v44"
+            fill="none" stroke="url(#kelvwire)" stroke-width="8"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Deliberately not symmetrical. Clippy was smug; Kelvin is doing his
+           best. The left eye is bigger, the right sits lower, and the brows
+           disagree about where they belong. -->
+      <ellipse class="e1" cx="28.5" cy="30" rx="8.2" ry="9.2" fill="#fff" stroke="#2c3338" stroke-width="1.6"/>
+      <ellipse class="e2" cx="44.6" cy="32.6" rx="6.7" ry="7.5" fill="#fff" stroke="#2c3338" stroke-width="1.6"/>
+      <circle class="p1" cx="29.4" cy="31" r="3.5" fill="#1b2024"/>
+      <circle class="p2" cx="45.2" cy="33.4" r="2.9" fill="#1b2024"/>
+      <path class="b1" d="M20 17.5 q8.5-5.5 16.5-1.5" fill="none" stroke="#2c3338" stroke-width="2.6" stroke-linecap="round"/>
+      <path class="b2" d="M38 22 q6.5-1.5 13 2" fill="none" stroke="#2c3338" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+  </button>
 </div>
 
 <div id="taskbar">
@@ -709,25 +810,22 @@
     "wood-river": { name: `Wood River Furniture`, stack: `Next.js · React · Square · Resend · PostHog · Railway`, site: `https://woodriverfurniture.com`, md: `# Wood River Furniture
 
 Wood River Furniture is my dad’s furniture and cabinetry business in St. George,
-so this project was a little more personal than just building a site for a
-random client.
+so I cared more than usual about getting this one right.
 
-I built out a gallery for past work, a shop for products they have available, a
-cart, and a full checkout system using Square.
+The site has a gallery of past work and a small online shop. Customers can pick
+product options, add them to a cart, and check out through Square. After an
+order, Square handles the payment and the customer and shop both get the order
+details by email.
 
-When somebody places an order, the payment is processed through Square and both
-the customer and the shop get an email with the order information.
-
-## Pricing
-
-One thing I spent some time thinking about was how to handle pricing safely.
+## A detail that mattered
 
 The cart only sends the product ID and the options the customer picked. The
-server looks up the real price, makes adjustments for things like wood species
-or dimensions, calculates tax, and then creates the Square payment.
+browser never gets to tell the server what something costs. The server looks up
+the base price, adjusts it for choices such as wood species or dimensions,
+calculates tax, and creates the Square payment.
 
-That way, somebody changing a price in devtools can make their cart look
-cheaper, but it won’t change what the server actually charges them.
+You can change the displayed price in devtools if you want. Square will still
+charge the amount the server calculated.
 
 ## Tech Stack
 
@@ -747,8 +845,8 @@ cheaper, but it won’t change what the server actually charges them.
     ], md: `# Family Hub
 
 An iPad on the kitchen wall, plus whatever phone is closest. It runs the week's
-dinners, the shopping list, the calendar and the household jobs. If someone
-plans a dinner on their phone, it shows up on the wall right away.
+dinners, shopping list, calendar, and household jobs. Plan dinner from a phone
+and the kitchen display updates right away.
 
 ![Tonight's dinner on the kitchen display](screenshots/hub-home.webp)
 ![The shopping list, rebuilt from the week's plan](screenshots/hub-shopping.webp)
@@ -756,50 +854,41 @@ plans a dinner on their phone, it shows up on the wall right away.
 ![The household task board](screenshots/hub-tasks.webp)
 ![The same list on the phone, at the shop](screenshots/phone-list.webp)
 
-## Why
+## Why I built it
 
 Before this it all lived in the Notes app. We had one note for the meal plan and
-another for the shopping list. Both got typed by hand, and keeping them lined up
-with each other was by hand too.
+another for groceries. We typed both by hand, then tried to remember to keep
+them in sync.
 
-## Shopping list
+Now the shopping list is generated from the meal plan whenever the page opens.
+It isn't stored as a second copy in the database. The only saved parts are what
+we already have, what someone crossed off, and extra items added by hand.
 
-The shopping list gets rebuilt from the meal plan every time someone opens the
-page. It never gets written to the database, so it can't fall out of sync with
-the plan.
-
-A few things do get stored: what we already have in the cupboard, what's been
-crossed off, and anything someone adds to the list by hand.
-
-## Ingredients
+## The annoying part: ingredients
 
 "garlic, thinly sliced" and "garlic, halved" should end up on the same line.
-Everything past the first comma is prep, so I cut there and merge on what's
-left. That line comes out as "2 cloves + 1 head · 2 meals".
+I treat everything after the first comma as preparation, then merge what is
+left. The result might read "2 cloves + 1 head · 2 meals".
 
-I list the amounts instead of adding them up. Cloves and heads and "a splash"
-don't add together, so I'd rather show both numbers than guess at a total.
+I leave the amounts alone instead of trying to do math on them. "2 cloves,"
+"1 head," and "a splash" don't add up to anything useful.
 
-## Eating out
-
-A night can be planned and have no cooking in it. Marking one "eating out"
-counts toward "4 of 7 planned" and puts nothing on the shopping list.
+A night marked "eating out" counts toward "4 of 7 planned" without putting
+anything on the shopping list.
 
 ## Recipes from a photo
 
-I can point my phone at a cookbook page and get a structured recipe back. There
-is no official Anthropic SDK for Rust, so this is plain HTTP against the
-Messages API. Structured outputs make the response come back in the recipe
-schema.
+I can photograph a cookbook page and get a recipe back in the right shape for
+the app. There is no official Anthropic SDK for Rust, so this is a plain HTTP
+call to the Messages API using structured outputs.
 
 ## Calendar
 
-ICS feeds get pulled on a timer and copied into the database. Each event is
-keyed on the feed plus its UID, so a re-sync overwrites what's already there
-instead of piling up duplicates.
+The server pulls ICS feeds on a timer. An event is keyed by its feed and UID;
+syncing again updates the existing row instead of creating a duplicate.
 
-Recurring events get expanded into real occurrences inside a set window. The hub
-only ever shows a week, so there's no reason to go further than that.
+Recurring events are expanded only for the window the hub can show. Since the
+screen is weekly, expanding years of occurrences would be wasted work.
 
 ## Tech Stack
 - Rust + Axum
@@ -822,42 +911,39 @@ https://github.com/dillon-webster/family-hub
 A self-hosted book club for me and a few friends. You read EPUBs in the browser
 and it picks up where you left off. There's a shared catalog, one book everyone
 reads together each month, shelves for what you're reading or have finished, and
-a feed showing what everyone else is up to. Invite only.
+a feed of what the rest of the club is reading. Invite only.
 
 ![The reader](screenshots/reader.webp)
 ![Bookcase shelves](screenshots/shelves.webp)
 ![Club dashboard](screenshots/dashboard.webp)
 
-## Why it exists
+## The idea
 
-Calibre-Web and Kavita already do this well, but they're built for managing a
-big library. I only wanted the book club part, so that's what I built. It
-doesn't convert formats and it doesn't handle comics. I kept the scope that
-small so I would actually finish it.
+Calibre-Web and Kavita already do the big-library part well. I wanted the book
+club part. Chapterhouse doesn't convert formats and it doesn't handle comics.
+Keeping it that small is probably why I finished it.
 
-## Getting in
+## Accounts
 
-The first time it runs there are no users, so every sign-in path sends you to a
-setup page. You make the admin account and the club's invite code there, in the
-browser.
+On a fresh install, every sign-in route leads to the setup screen. That is where
+the first admin account and the club invite code are created.
 
-Signing up after that requires the invite code, so somebody who finds the URL
-still can't make an account. People run this behind a tailnet, a reverse proxy
-or a tunnel.
+After that, you need the invite code to make an account. Finding the URL isn't
+enough. It can run behind a tailnet, reverse proxy, or tunnel.
 
-## Where the books live
+## Book storage
 
-EPUBs sit on disk instead of in Postgres, and every read and write goes through
-one storage module. If I point STORAGE_DIR at a different disk, the whole
-library moves and nothing that reads from it has to change.
+EPUBs stay on disk, not in Postgres. All file access goes through one storage
+module, so changing STORAGE_DIR moves the library without leaking storage paths
+through the rest of the app.
 
-## Running it somewhere else
+## How I run it
 
-It builds as a container and gets published to GitHub's registry. There's a
-compose file, a license and setup docs, so somebody else can stand it up.
+Each build is published as a container in GitHub's registry. The repository has
+a Compose file and setup documentation for running another instance.
 
-Mine runs on the home server. My friends are on my tailnet and reach it by the
-machine's Tailscale name. Nothing is open to the internet.
+Mine is on my home server. Friends reach it by the machine's Tailscale name;
+nothing is exposed to the public internet.
 
 ## Tech Stack
 - Next.js 16
@@ -877,88 +963,71 @@ https://github.com/dillon-webster/chapterhouse
 
 A league tracker for the Madden franchise a friend and I play. The Madden
 Companion App exports your league, and this catches that export, stores it, and
-runs the league off it: standings, results, a Discord bot for filing a game from
-your phone, and a written weekly edition.
+runs the rest of the site from it: standings, results, a Discord bot for filing
+games, and a written weekly edition.
 
-None of it is real news. It's a two-person franchise league in a video game, the
-teams are the ones that ship with it, and every word of the writing is model
-output. The site says the same in its footer.
+None of this is real news. It is a two-person league in a video game, and the
+articles are model-generated. The site says that in its footer too.
 
 ![The weekly edition, written by the model](screenshots/mnn-edition.webp)
 
 ![Week scores, rendered from the league database](screenshots/mnn-scores.webp)
 
-## The export feed
+## Getting Madden data into Postgres
 
 EA doesn't publish the format for that payload, and it changes between title
-updates. So I generate the schema from real captured exports into one file, and
-both the table definitions and the upserts come from it. When a field changes I
-edit one place.
+updates. I generate a schema from captured exports, then use that file for both
+table definitions and upserts. Hand-written corrections live elsewhere so they
+survive regeneration.
 
-Fixes I work out by hand live outside that file, because regenerating it
-overwrites everything in there.
+The strangest correction is winLossStreak. It arrives as an unsigned byte, so a
+one-game losing streak reads as 255. Left alone, the site proudly reports a
+255-game winning streak. The surrounding fields are signed normally; it is just
+that one.
 
-winLossStreak needed one. It comes back as an unsigned byte, so a losing streak
-wraps past 127. A team that has lost one game in a row reads as 255, and the
-site would show that as a 255 game win streak. The fields around it are signed
-normally, so it's only that one field.
-
-I treat EA's team id the same way. It isn't stable across title updates, so I
-store it as ea_team_id and never use it as a primary key.
+EA's team ID is another trap. It changes between titles, so I keep it as
+ea_team_id but never trust it as a primary key.
 
 ## Storylines
 
-A SQL pass over finished games looks for patterns, like a kicker who has missed
-in three of the last four weeks or a team on a five game slide. Each one gets a
-heat value that climbs while the pattern holds and decays when it stops.
-Detection is idempotent per week, so re-syncing an export doesn't double-count a
-streak.
+A SQL pass over completed games finds things worth writing about: a kicker who
+missed in three of the last four weeks, for example, or a team on a five-game
+slide. Each storyline heats up while the pattern continues and cools after it
+stops. Re-syncing the same week does not count it twice.
 
-Most of that table never gets used. Before a story is written I pull only the
-arcs involving the teams playing that week, hottest first, with a hard cap of a
-handful. I can also retire a running joke by hand, which takes it out of
-selection.
+Before writing, I select a handful of the hottest relevant storylines. I can
+also retire a running joke manually when it has gone on long enough.
 
-## Writing the edition
+## What the model gets
 
 The model only sees a fact packet built from Postgres: one week of games, a
-dozen standings lines, and those few storylines. It's a few kilobytes whether
-the league is two seasons old or ten, so the cost doesn't grow as the history
-does. It also means anything in the finished prose either came from the packet
-or was invented.
+dozen standings lines, and the selected storylines. The packet stays a few
+kilobytes whether the league is two seasons old or ten. If a claim did not come
+from that packet, the model made it up.
 
-There are two requests a week. One flagship call writes the whole edition, which
-covers the lead story, the human games, power rankings, the standings narrative,
-next week's preview and the prompt for the cover art. A cheaper call handles all
-the CPU-vs-CPU recaps in one batch.
+There are two requests per week. One writes the main edition and its cover-art
+prompt. A cheaper request handles the CPU-vs-CPU recaps as a batch.
 
-Replies come back through structured outputs against Zod schemas, so I parse an
-object. Games get referenced by id instead of by matchup, so the model never
-writes a score itself. Scores, records and stat lines aren't stored on the story
-at all. The page renders those from the canonical tables, so an edition
-published in week 3 still shows the right numbers in week 12.
+Responses use structured outputs validated with Zod. Games are referenced by
+ID, and scores, records, and stat lines are rendered from the canonical tables
+rather than copied into an article. An edition from week 3 will still display
+the correct numbers in week 12.
 
 ## Checking the numbers
 
-The model is allowed to invent quotes, rumours, hot takes and running jokes, but
-not scores, records, stats, or teams that don't exist. Prompting doesn't
-guarantee that on its own, so I check the prose against the same packet the
-model was given. Any "31-27" has to match a real final from that week, any "6-1"
-has to match a real record, and any capitalised two-to-four letter token has to
-be a team in this league.
+Fake quotes, rumors, hot takes, and running jokes are part of the fun. Fake
+scores and records are not. Every "31-27" in the prose has to match a real game
+from that week, every "6-1" has to be a real record, and team abbreviations have
+to belong to the league.
 
-If the check fails it retries once with the specific complaint. If it fails
-again the story gets stored with the warnings attached rather than thrown away.
-I keep the packet that produced each story too, so I can read a bad one back
-later.
+A failed check gets one retry with the exact complaint. After that I keep the
+story, its warnings, and the source packet so I can inspect what went wrong.
 
 ## Filing a game
 
-Filing from Discord runs the same code path as the web form, so the two can't
-drift, and it costs one round of SQL instead of a model call. Discord also gets
-carry-forward and undo, since a correction typed on a phone is usually one short
-line. A game's existing editorial fields survive unless the filing replaces
-them.
+Discord and the web form call the same filing code. The bot supports
+carry-forward and undo because correcting a result from a phone should take one
+short message, not a trip back to the site.
 
 ## Tech Stack
 - TypeScript (~19,700 lines)
@@ -979,60 +1048,56 @@ Private repo for now. Happy to walk through the ingest layer.
     ], md: `# media-dashboard
 
 A web panel I use for the media stuff on my PC: ripping discs, encoding, and
-moving files to and from my home server. I already had scripts for all of it.
-This is a front end over them.
+moving files to and from my home server. I already had scripts that worked. This
+is the front end I wanted over them.
 
 ![A rip in progress, tracked in the job list](screenshots/md-jobs.webp)
 
-## Jobs
+## Let it run
 
 Every rip, encode and transfer runs detached. Each one gets its own log file and
-a row in SQLite.
-
-So a three hour encode keeps going if I close the browser, restart the panel, or
-reboot the machine. I use systemd-inhibit to keep the box from suspending in the
-middle of one.
+a row in SQLite. A three-hour encode survives a closed browser or a restarted
+panel. systemd-inhibit keeps the PC awake until the work is done.
 
 The list also shows processes the dashboard didn't start. If I kick off an
 encode from the terminal, it shows up with everything else.
 
-## Stopping the right process
+## One bug I did not want
 
 Linux starts handing out pids from the bottom again after a reboot, so a job
-still sitting there marked "running" can be pointing at whatever process
-inherited its number. Hitting Stop would kill that one. I keep the boot id and
-the process start time next to the pid and check all three before anything gets
-signalled.
+left marked "running" can point at an unrelated process that inherited the same
+number. Hitting Stop could kill that process. I store the boot ID and process
+start time with the PID, then verify all three before sending a signal.
 
 ## Ripping
 
-I use MakeMKV to rip the disc. The dashboard then works out what each title
-should be called.
+MakeMKV does the actual ripping. The dashboard works out what each title should
+be called before moving anything into Jellyfin.
 
-For a TV disc it looks the episode list up on TMDB under the show name instead
-of trusting the disc label, and matches titles to episodes by their content. It
-shows me the mapping before anything gets moved into Jellyfin.
+For TV discs, it fetches the episode list from TMDB instead of trusting the disc
+label, matches the titles by their content, and lets me review the result.
 
-Some box set discs run past the end of a season. Those get both seasons'
-episode lists, so each title still lands in the right place.
+Some box-set discs cross a season boundary. In that case it loads both seasons'
+episode lists. Otherwise the last title on one disc can quietly become the
+wrong episode.
 
 ![Telling the ripper what disc is in the drive](screenshots/md-ripper.webp)
 
 ## Moving files
 
-Pulling a season down from the home server or pushing one up runs as a job like
-everything else, so a big copy keeps going if I close the browser.
+Pulling a season from the server or pushing one back is just another background
+job. Large copies do not depend on the browser staying open.
 
 ![Moving files between the PC and the home server](screenshots/md-transfer.webp)
 
 ## Access
 
 The panel only lives on my tailnet, so only my machines can reach it. Any site
-open in a browser on one of those machines can still POST to it, because a
-cross-origin form doesn't trigger a preflight.
+open in a browser on one of those machines can still POST to it: a cross-origin
+form does not trigger a preflight.
 
-So I check the Host and Origin headers on every request. Show names get passed
-to commands as arguments, so nothing I type ends up inside a shell string.
+Every request gets its Host and Origin checked. Show names are passed to
+commands as arguments, never interpolated into a shell string.
 
 ## Tech Stack
 - Python, standard library only (no pip install to break on a new interpreter)
@@ -1254,6 +1319,11 @@ Happy to walk through any of this code, including the parts that are private.
     if (w.onFocus) w.onFocus();
   }
 
+  function frontWin() {
+    return [...wins.entries()].reverse().find(([, w]) =>
+      w.el.classList.contains("focused") && !w.el.classList.contains("min"));
+  }
+
   function closeWin(id) {
     const w = wins.get(id);
     if (!w) return;
@@ -1272,8 +1342,7 @@ Happy to walk through any of this code, including the parts that are private.
     if (document.querySelector("#menu.open, #ctx.open")) return;
     // Don't yank the terminal out from under someone mid-command.
     if (e.target.closest && e.target.closest("input, textarea, [contenteditable]")) return;
-    const front = [...wins.entries()].reverse().find(([, w]) =>
-      w.el.classList.contains("focused") && !w.el.classList.contains("min"));
+    const front = frontWin();
     if (front) closeWin(front[0]);
   }, true);
 
@@ -1484,6 +1553,8 @@ Happy to walk through any of this code, including the parts that are private.
           "cd &lt;dir&gt;        change directory  (cd .. to go up)",
           "cat &lt;file&gt;      print a file",
           "open &lt;name&gt;     open a project in a window",
+          "grep [-i] &lt;pat&gt;  search every file",
+          "find &lt;name&gt;     find a file by name  (* allowed)",
           "tree            show everything at once",
           "pwd             where am I",
           "neofetch        system info",
@@ -1554,6 +1625,84 @@ Happy to walk through any of this code, including the parts that are private.
         };
         walk(FS, "");
         out(esc(lines.join("\n")));
+      },
+      grep(arg) {
+        // grep [-i] <pattern> [path]. Always recursive: the whole filesystem is
+        // a handful of text files, so there's nothing to gain from making the
+        // visitor remember -r.
+        let flags = "", rest = (arg || "").trim(), m;
+        while ((m = rest.match(/^-([A-Za-z]+)\s+/))) { flags += m[1]; rest = rest.slice(m[0].length); }
+        let pat, tail;
+        const q = rest.match(/^(["'])(.*?)\1\s*(.*)$/);
+        if (q) { pat = q[2]; tail = q[3].trim(); }
+        else {
+          const sp = rest.indexOf(" ");
+          pat = sp === -1 ? rest : rest.slice(0, sp);
+          tail = sp === -1 ? "" : rest.slice(sp + 1).trim();
+        }
+        if (!pat) return out("grep: usage: grep [-i] &lt;pattern&gt; [dir]", "err");
+        let rx;
+        try { rx = new RegExp(pat, flags.indexOf("i") > -1 ? "gi" : "g"); }
+        catch (err) { return out("grep: " + esc(pat) + ": invalid expression", "err"); }
+        if (rx.test("")) return out("grep: " + esc(pat) + ": matches every line", "err");
+        const startParts = tail ? normalize(cwd, tail) : cwd;
+        const startNode = resolve(startParts);
+        if (!startNode) return out("grep: " + esc(tail) + ": no such file or directory", "err");
+
+        // Highlight against the raw line and escape the pieces, so a match
+        // can't land inside an HTML entity the escaping just introduced.
+        const mark = line => {
+          let html = "", last = 0, hit;
+          rx.lastIndex = 0;
+          while ((hit = rx.exec(line))) {
+            html += esc(line.slice(last, hit.index)) +
+                    '<span class="mtch">' + esc(hit[0]) + "</span>";
+            last = hit.index + hit[0].length;
+            if (hit.index === rx.lastIndex) rx.lastIndex++;
+          }
+          return html + esc(line.slice(last));
+        };
+
+        const CAP = 80, hits = [];
+        const scan = (node, parts) => {
+          if (hits.length >= CAP) return;
+          if (node.type === "dir") {
+            Object.keys(node.children).forEach(k => scan(node.children[k], parts.concat(k)));
+            return;
+          }
+          const text = node.md || (node.type === "link" ? "URL=" + node.url : "");
+          if (!text) return;
+          text.split("\n").forEach((line, i) => {
+            if (hits.length >= CAP) return;
+            rx.lastIndex = 0;
+            if (!rx.test(line)) return;
+            hits.push('<span class="pth">' + esc(pathStr(parts)) + "</span>:" +
+                      '<span class="dir">' + (i + 1) + "</span>: " + mark(line.trim()));
+          });
+        };
+        scan(startNode, startParts);
+        if (!hits.length) return out("no matches for " + esc(pat), "hint");
+        out(hits.join("\n"));
+        if (hits.length >= CAP) out("(stopped at " + CAP + " matches)", "hint");
+      },
+      find(arg) {
+        const pat = (arg || "").trim();
+        if (!pat) return out("find: usage: find &lt;name&gt;  (* allowed)", "err");
+        const glob = pat.indexOf("*") > -1 || pat.indexOf("?") > -1;
+        const rx = new RegExp("^" + pat.replace(/[.+^${}()|[\]\\]/g, "\\$&")
+                                       .replace(/\*/g, ".*").replace(/\?/g, ".") + "$", "i");
+        const low = pat.toLowerCase(), hits = [];
+        const walk = (node, parts) => {
+          Object.keys(node.children || {}).forEach(k => {
+            const child = node.children[k], p = parts.concat(k);
+            const match = glob ? rx.test(k) : k.toLowerCase().indexOf(low) > -1;
+            if (match) hits.push(pathStr(p) + (child.type === "dir" ? "/" : ""));
+            if (child.type === "dir") walk(child, p);
+          });
+        };
+        walk(FS, []);
+        if (!hits.length) return out("no files matching " + esc(pat), "hint");
+        out(esc(hits.join("\n")));
       },
       pwd() { out(esc(pathStr(cwd))); },
       whoami() { out("dillon"); },
@@ -1794,6 +1943,7 @@ Happy to walk through any of this code, including the parts that are private.
         '<button class="navbtn f" title="Forward" aria-label="Forward">' + I.fwd + "</button>" +
         '<button class="navbtn u" title="Up" aria-label="Up one level">' + I.up + "</button>" +
         '<div class="crumbs"></div>' +
+        '<input class="fm-find" type="search" placeholder="Filter…" aria-label="Filter files in this folder" hidden>' +
       "</div>" +
       '<div class="fm-main">' +
         '<div class="places"><h4>Places</h4></div>' +
@@ -1802,6 +1952,7 @@ Happy to walk through any of this code, including the parts that are private.
       '<div class="fm-status"></div>';
 
     const crumbs = wrap.querySelector(".crumbs");
+    const findBox = wrap.querySelector(".fm-find");
     const grid   = wrap.querySelector(".fm-grid");
     const places = wrap.querySelector(".places");
     const status = wrap.querySelector(".fm-status");
@@ -1822,10 +1973,22 @@ Happy to walk through any of this code, including the parts that are private.
     });
 
     function go(parts, noHist) {
+      // A filter left over from the last folder reads as an empty directory,
+      // so moving clears it.
+      findBox.value = "";
       if (!noHist) { back.push(cwd.slice()); fwd.length = 0; }
       cwd = parts;
       render();
     }
+
+    findBox.addEventListener("input", render);
+    findBox.addEventListener("keydown", e => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      findBox.value = "";
+      findBox.hidden = true;
+      render();
+    });
 
     function render() {
       // Walk back to the nearest real directory rather than falling back to
@@ -1853,7 +2016,9 @@ Happy to walk through any of this code, including the parts that are private.
       });
 
       grid.innerHTML = "";
-      const names = Object.keys(node.children || {});
+      const all = Object.keys(node.children || {});
+      const q = findBox.value.trim().toLowerCase();
+      const names = q ? all.filter(n => n.toLowerCase().indexOf(q) > -1) : all;
       names.forEach(n => {
         const child = node.children[n];
         const b = document.createElement("button");
@@ -1899,7 +2064,8 @@ Happy to walk through any of this code, including the parts that are private.
         grid.appendChild(b);
       });
 
-      status.textContent = pathStr(cwd) + " — " + names.length + " item" + (names.length === 1 ? "" : "s");
+      status.textContent = pathStr(cwd) + " — " + names.length + " item" +
+        (names.length === 1 ? "" : "s") + (q ? " of " + all.length + " matching “" + q + "”" : "");
       bBtn.disabled = !back.length;
       fBtn.disabled = !fwd.length;
       uBtn.disabled = !cwd.length;
@@ -1923,11 +2089,74 @@ Happy to walk through any of this code, including the parts that are private.
   ];
 
   const iconsEl = document.getElementById("icons");
+
+  /* Icon positions survive a reload, the way a real desktop's would. Keyed by
+     label rather than index so reordering ICONS doesn't shuffle saved spots. */
+  const ICON_POS = "dw.iconpos";
+  function freeIcons() {
+    if (iconsEl.classList.contains("free")) return;
+    const base = iconsEl.getBoundingClientRect();
+    const spots = [...iconsEl.children].map(el => {
+      const r = el.getBoundingClientRect();
+      return [Math.round(r.left - base.left), Math.round(r.top - base.top)];
+    });
+    iconsEl.classList.add("free");
+    [...iconsEl.children].forEach((el, i) => {
+      el.style.left = spots[i][0] + "px";
+      el.style.top  = spots[i][1] + "px";
+    });
+  }
+  function saveIcons() {
+    const m = {};
+    [...iconsEl.children].forEach(el => {
+      m[el.dataset.label] = [parseInt(el.style.left, 10), parseInt(el.style.top, 10)];
+    });
+    try { localStorage.setItem(ICON_POS, JSON.stringify(m)); } catch (err) {}
+  }
+  function resetIcons() {
+    try { localStorage.removeItem(ICON_POS); } catch (err) {}
+    iconsEl.classList.remove("free");
+    [...iconsEl.children].forEach(el => { el.style.left = ""; el.style.top = ""; });
+  }
+
   ICONS.forEach(([label, icon, action]) => {
     const b = document.createElement("button");
     b.className = "icon";
+    b.dataset.label = label;
     b.innerHTML = icon + "<span>" + esc(label) + "</span>";
-    let tapped = 0, fired = 0;
+    let tapped = 0, fired = 0, dropped = 0;
+
+    // Mouse only. On touch a long press is how you scroll, not how you drag.
+    b.addEventListener("pointerdown", ev => {
+      if (ev.pointerType !== "mouse" || ev.button !== 0) return;
+      const sx = ev.clientX, sy = ev.clientY;
+      let moving = false, ox = 0, oy = 0;
+      const move = m => {
+        if (!moving) {
+          if (Math.abs(m.clientX - sx) < 5 && Math.abs(m.clientY - sy) < 5) return;
+          moving = true;
+          freeIcons();
+          const r = b.getBoundingClientRect();
+          ox = sx - r.left; oy = sy - r.top;
+          b.classList.add("dragging");
+        }
+        const base = iconsEl.getBoundingClientRect();
+        const x = Math.max(0, Math.min(m.clientX - base.left - ox, base.width  - b.offsetWidth));
+        const y = Math.max(0, Math.min(m.clientY - base.top  - oy, base.height - b.offsetHeight));
+        b.style.left = Math.round(x) + "px";
+        b.style.top  = Math.round(y) + "px";
+      };
+      const up = () => {
+        document.removeEventListener("pointermove", move);
+        document.removeEventListener("pointerup", up);
+        if (!moving) return;
+        b.classList.remove("dragging");
+        saveIcons();
+        dropped = Date.now();   // the click that ends a drag shouldn't select
+      };
+      document.addEventListener("pointermove", move);
+      document.addEventListener("pointerup", up);
+    });
     const once = () => {
       const now = Date.now();
       if (now - fired < 400) return;   // tap detector and native dblclick both land
@@ -1937,6 +2166,7 @@ Happy to walk through any of this code, including the parts that are private.
     b.addEventListener("dblclick", once);
     b.addEventListener("keydown", e => { if (e.key === "Enter") once(); });
     b.addEventListener("click", () => {
+      if (Date.now() - dropped < 300) return;
       [...iconsEl.querySelectorAll(".icon")].forEach(x => x.classList.remove("sel"));
       b.classList.add("sel");
       const now = Date.now();
@@ -1945,6 +2175,20 @@ Happy to walk through any of this code, including the parts that are private.
     });
     iconsEl.appendChild(b);
   });
+
+  // Restore saved spots, but not onto a phone layout the positions weren't
+  // measured against.
+  if (window.innerWidth > 720) {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(ICON_POS) || "null"); } catch (err) {}
+    if (saved) {
+      freeIcons();
+      [...iconsEl.children].forEach(el => {
+        const p = saved[el.dataset.label];
+        if (p) { el.style.left = p[0] + "px"; el.style.top = p[1] + "px"; }
+      });
+    }
+  }
 
   const menu = document.getElementById("menu");
   const menuItems = document.getElementById("menu-items");
@@ -1967,15 +2211,54 @@ Happy to walk through any of this code, including the parts that are private.
     menuItems.appendChild(b);
   });
   function closeMenu() { menu.classList.remove("open"); launcher.setAttribute("aria-expanded", "false"); }
-  launcher.addEventListener("click", e => {
-    e.stopPropagation();
+  function toggleMenu() {
     const open = menu.classList.toggle("open");
     launcher.setAttribute("aria-expanded", open ? "true" : "false");
-  });
+  }
+  launcher.addEventListener("click", e => { e.stopPropagation(); toggleMenu(); });
   document.addEventListener("click", e => {
     if (!menu.contains(e.target) && e.target !== launcher) closeMenu();
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
+
+  /* ---- keyboard shortcuts a real session would answer ---- */
+
+  // Alt+Tab cycles windows, Shift reverses. Minimized windows are included,
+  // since focusWin restores them.
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Tab" || !e.altKey) return;
+    const open = [...wins.keys()];
+    if (!open.length) return;
+    e.preventDefault();
+    const front = frontWin();
+    const at = front ? open.indexOf(front[0]) : -1;
+    focusWin(open[(at + (e.shiftKey ? -1 : 1) + open.length) % open.length]);
+  });
+
+  // Ctrl+F reveals the filter, but only when a file manager is in front —
+  // otherwise the browser's own find is the more useful thing and keeps it.
+  document.addEventListener("keydown", e => {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "f") return;
+    const front = frontWin();
+    const box = front && front[1].el.querySelector(".fm-find");
+    if (!box) return;
+    e.preventDefault();
+    box.hidden = false;
+    box.focus();
+    box.select();
+  });
+
+  // Super on its own opens the launcher, the way it does in Plasma. Any other
+  // key in between means it was a modifier for something else, not a tap.
+  let superTap = false;
+  document.addEventListener("keydown", e => {
+    superTap = (e.key === "Meta" || e.key === "OS") && !e.repeat;
+    if (e.key === "F1" && e.altKey) { e.preventDefault(); toggleMenu(); }
+  });
+  document.addEventListener("keyup", e => {
+    if ((e.key === "Meta" || e.key === "OS") && superTap) { superTap = false; toggleMenu(); }
+  });
+
   desktop.addEventListener("click", e => {
     if (e.target === desktop || e.target === iconsEl) {
       [...iconsEl.querySelectorAll(".icon")].forEach(x => x.classList.remove("sel"));
@@ -2048,7 +2331,8 @@ Happy to walk through any of this code, including the parts that are private.
     e.preventDefault();
     ctx.innerHTML = "";
     [["Configure Desktop and Wallpaper…", openWallpaperPicker],
-     ["Open Terminal here", openTerminal]].forEach(([label, fn]) => {
+     ["Open Terminal here", openTerminal],
+     ["Reset icon positions", resetIcons]].forEach(([label, fn]) => {
       const b = document.createElement("button");
       b.className = "mitem";
       b.textContent = label;
@@ -2056,13 +2340,216 @@ Happy to walk through any of this code, including the parts that are private.
       ctx.appendChild(b);
     });
     ctx.style.left = Math.min(e.clientX, window.innerWidth - 224) + "px";
-    ctx.style.top  = Math.min(e.clientY, window.innerHeight - 110) + "px";
+    ctx.style.top  = Math.min(e.clientY, window.innerHeight - 140) + "px";
     ctx.classList.add("open");
   });
   document.addEventListener("click", closeCtx);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeCtx(); });
 
   applyWallpaper(wpIndex);
+
+  /* ============ kelvin ============
+     A paperclip with googly eyes who lives in the corner and points at whatever
+     you're looking at. Self-contained: this block, the #kelvin markup, and the
+     kelvin CSS block are the whole of him. */
+  (function () {
+    const cl = document.getElementById("kelvin");
+    if (!cl) return;
+    const bubble = cl.querySelector(".bubble p");
+    const SEEN = "dw.kelvin";
+
+    // What's in front decides the tip, so he's pointing at whatever you're
+    // actually looking at rather than reciting a list.
+    const TIPS = {
+      term: [
+        "Try <code>grep -i postgres</code> — it searches every README at once.",
+        "<code>tree</code> prints the whole filesystem in one go.",
+        "<code>open family-hub</code> opens a project without leaving the terminal."
+      ],
+      fm: [
+        "<b>Ctrl+F</b> filters the folder you're in.",
+        "Screenshots have thumbnails now. Double-click one to see it full size.",
+        "The globe in a project folder is the real live site."
+      ],
+      doc: [
+        "These are the actual README files from each repo.",
+        "<b>Alt+Tab</b> switches windows if you've got a few open.",
+        "<b>Escape</b> closes whatever's in front."
+      ],
+      none: [
+        "Double-click <b>Projects</b> to start looking around.",
+        "Open <b>Konsole</b> if you'd rather type than click.",
+        "You can drag the desktop icons anywhere. They stay put.",
+        "Right-click the desktop to change the wallpaper."
+      ]
+    };
+
+    function context() {
+      const front = frontWin();
+      if (!front) return "none";
+      const el = front[1].el;
+      if (el.querySelector(".term")) return "term";
+      if (el.querySelector(".fm")) return "fm";
+      if (el.querySelector(".ed-body, .iv")) return "doc";
+      return "none";
+    }
+
+    let ctxKey = "none", i = 0, nags = 0, forced = null, locked = false, mute = false;
+    function say(advance) {
+      // While he's sulking nothing else gets to speak. Clicking "Go away" is a
+      // mousedown, and the focus-follow below would otherwise overwrite the
+      // line with a cheerful tip 60ms later.
+      if (mute) return;
+      // A forced line jumps the queue once, then normal tips resume.
+      if (forced) { bubble.innerHTML = forced; forced = null; return; }
+      const k = context();
+      if (k !== ctxKey) { ctxKey = k; i = 0; }        // new context, start at its first tip
+      else if (advance) i++;
+      const list = TIPS[ctxKey];
+      bubble.innerHTML = list[i % list.length];
+    }
+
+    let met = false;
+    function show() {
+      if (cl.classList.contains("on")) return;
+      // He introduces himself before he starts being helpful, regardless of
+      // which window happens to be in front when he turns up.
+      if (!met) {
+        met = true;
+        forced = "Hi. I'm Kelvin. It looks like you're browsing a portfolio.";
+      }
+      say(false);
+      cl.classList.add("on");
+    }
+    function hide(forGood) {
+      cl.classList.remove("on");
+      if (forGood) { try { localStorage.setItem(SEEN, "1"); } catch (err) {} }
+    }
+
+    cl.querySelector(".next").addEventListener("click", () => { cheerUp(); say(true); });
+
+    // Brows drop into a V the moment you dismiss him, and stay that way. Once
+    // you've tried to get rid of Kelvin he does not let it go.
+    const BROWS = { b1: cl.querySelector(".b1"), b2: cl.querySelector(".b2") };
+    // Brows driven down onto the eyes, not just tilted. One cue this small
+    // doesn't read, so the squint and the tremble carry it with them.
+    const CROSS = { b1: "M18 12.5 Q27.5 17 37.5 24.5", b2: "M37 25.5 Q45 19.5 53 13.5" };
+    const SQUINT = ["4.8", "3.9"];
+    const CALM = {
+      d1: BROWS.b1.getAttribute("d"),            d2: BROWS.b2.getAttribute("d"),
+      w1: BROWS.b1.getAttribute("stroke-width"), w2: BROWS.b2.getAttribute("stroke-width")
+    };
+    // Asking him for another tip is enough to patch things up: brows back up,
+    // eyes back open, and he starts following the cursor again.
+    function cheerUp() {
+      if (!locked) return;
+      BROWS.b1.setAttribute("d", CALM.d1);
+      BROWS.b2.setAttribute("d", CALM.d2);
+      BROWS.b1.setAttribute("stroke-width", CALM.w1);
+      BROWS.b2.setAttribute("stroke-width", CALM.w2);
+      EYES.forEach(e => { e.rest = e.ry; e.w.setAttribute("ry", e.ry); });
+      locked = false;
+    }
+    function sulk() {
+      BROWS.b1.setAttribute("d", CROSS.b1);
+      BROWS.b2.setAttribute("d", CROSS.b2);
+      BROWS.b1.setAttribute("stroke-width", "3.6");
+      BROWS.b2.setAttribute("stroke-width", "3.4");
+      EYES.forEach((e, n) => { e.rest = SQUINT[n]; e.w.setAttribute("ry", SQUINT[n]); });
+      // Pupils come off the cursor and lock dead ahead. He is looking at you
+      // now, not at where your mouse happens to be, and he stays that way.
+      locked = true;
+      EYES.forEach(e => {
+        e.p.setAttribute("cx", e.hx.toFixed(1));
+        e.p.setAttribute("cy", e.hy.toFixed(1));
+      });
+    }
+
+    // Dismissing Clippy never worked the first time, and that was the whole
+    // point of him. Kelvin glares for three seconds, leaves, and comes back
+    // once. The second dismissal sticks.
+    const goBtn = cl.querySelector(".go");
+    goBtn.addEventListener("click", () => {
+      if (nags > 0) { hide(true); return; }
+      nags = 1;
+      sulk();
+      mute = true;
+      bubble.innerHTML = "Fine.";
+      cl.classList.add("cross");
+      // Six seconds of being stared at, and only then does he start to fade.
+      setTimeout(() => {
+        cl.classList.add("leaving");
+        setTimeout(() => {
+          cl.classList.remove("leaving", "cross");
+          mute = false;
+          hide(false);
+          setTimeout(() => {
+            forced = "It looks like you're trying to get rid of me.";
+            goBtn.textContent = "Go away (really)";
+            show();
+          }, 40000);
+        }, 1400);
+      }, 4000);
+    });
+    cl.querySelector(".guy").addEventListener("click", () => { cheerUp(); say(true); });
+
+    // He follows you around: focusing a different kind of window re-points the
+    // tip, but only while he's already on screen.
+    document.addEventListener("mousedown", () => {
+      if (cl.classList.contains("on")) setTimeout(() => say(false), 60);
+    }, true);
+
+    /* ---- eyes ---- */
+    const svg = cl.querySelector(".guy svg");
+    const EYES = [
+      { w: svg.querySelector(".e1"), p: svg.querySelector(".p1"), hx: 29.4, hy: 31.0, reach: 3.0, bias: 0 },
+      // The right eye aims a little wide of wherever he's actually looking.
+      { w: svg.querySelector(".e2"), p: svg.querySelector(".p2"), hx: 45.2, hy: 33.4, reach: 2.3, bias: 3.5 }
+    ];
+    EYES.forEach(e => { e.ry = e.w.getAttribute("ry"); e.rest = e.ry; });
+
+    document.addEventListener("mousemove", ev => {
+      if (!cl.classList.contains("on") || locked) return;
+      const box = svg.getBoundingClientRect();
+      if (!box.width) return;
+      // Screen pixels -> the 72x104 user space the face is drawn in.
+      const mx = (ev.clientX - box.left) * (72 / box.width);
+      const my = (ev.clientY - box.top) * (104 / box.height);
+      EYES.forEach(e => {
+        const dx = mx - e.hx + e.bias, dy = my - e.hy;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const k = Math.min(d, e.reach) / d;
+        e.p.setAttribute("cx", (e.hx + dx * k).toFixed(1));
+        e.p.setAttribute("cy", (e.hy + dy * k).toFixed(1));
+      });
+    });
+
+    function blink() {
+      EYES.forEach(e => { e.w.setAttribute("ry", "1.2"); e.p.setAttribute("opacity", "0"); });
+      setTimeout(() => {
+        EYES.forEach(e => { e.w.setAttribute("ry", e.rest); e.p.setAttribute("opacity", "1"); });
+      }, 110);
+      setTimeout(blink, 2600 + Math.random() * 4400);   // irregular, so it reads as alive
+    }
+    setTimeout(blink, 3200);
+
+    let dismissed = false;
+    try { dismissed = localStorage.getItem(SEEN) === "1"; } catch (err) {}
+    if (!dismissed && window.innerWidth > 720) setTimeout(show, 6500);
+
+    // A way back, since "Go away" is permanent otherwise. Appended directly
+    // because MENU was already rendered by the time this runs.
+    const b = document.createElement("button");
+    b.className = "mitem";
+    b.innerHTML = I.chip + "<span>Kelvin</span>";
+    b.addEventListener("click", () => {
+      closeMenu();
+      try { localStorage.removeItem(SEEN); } catch (err) {}
+      cl.classList.remove("on");
+      show();
+    });
+    menuItems.appendChild(b);
+  })();
 
   /* ============ clock + boot ============ */
   const clock = document.getElementById("clock");
