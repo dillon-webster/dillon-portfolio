@@ -628,59 +628,6 @@
   }
   .wp.on .nm { color: var(--accent); font-weight: 600; }
 
-  /* ---------- kelvin ---------- */
-  #kelvin {
-    position: fixed; left: 50%; transform: translateX(-50%);
-    bottom: 58px; z-index: 60;
-    display: none; align-items: flex-end; gap: 8px;
-    transition: opacity 1.4s ease;
-  }
-  #kelvin.leaving { opacity: 0; }
-  /* The cheerful bob undercuts the glare, so it's swapped for a tight,
-     fast tremble. */
-  #kelvin.cross .guy { animation: kelvshake .25s ease-in-out infinite; }
-  @keyframes kelvshake {
-    0%, 100% { transform: translateX(-0.7px) rotate(-1.2deg); }
-    50%      { transform: translateX(0.7px)  rotate(1.2deg); }
-  }
-  #kelvin.on { display: flex; }
-  #kelvin .bubble {
-    position: relative; max-width: 260px;
-    background: #fbf7d8; color: #23262a;
-    border: 1px solid #b9ad6a; border-radius: 7px;
-    padding: 11px 12px 9px; font: 12.5px/1.45 var(--ui);
-    box-shadow: 0 6px 20px rgba(0,0,0,.45);
-  }
-  #kelvin .bubble:after {
-    content: ""; position: absolute; right: -7px; bottom: 16px;
-    width: 12px; height: 12px; background: #fbf7d8;
-    border-right: 1px solid #b9ad6a; border-top: 1px solid #b9ad6a;
-    transform: rotate(45deg);
-  }
-  #kelvin .bubble p { margin: 0 0 9px; }
-  #kelvin .bubble code {
-    background: rgba(0,0,0,.08); border-radius: 3px; padding: 1px 4px;
-    font: 12px var(--mono);
-  }
-  #kelvin .acts { display: flex; gap: 6px; justify-content: flex-end; }
-  #kelvin .acts button {
-    font: 11.5px var(--ui); cursor: pointer;
-    background: #ece7c4; color: #23262a;
-    border: 1px solid #b9ad6a; border-radius: 3px; padding: 3px 9px;
-  }
-  #kelvin .acts button:hover { background: #e0d9ab; }
-  #kelvin .guy {
-    background: none; border: 0; padding: 0; cursor: pointer;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,.5));
-    animation: kelvbob 3.4s ease-in-out infinite;
-  }
-  #kelvin .guy svg { display: block; width: 58px; height: 84px; }
-  @keyframes kelvbob {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50%      { transform: translateY(-5px) rotate(-2deg); }
-  }
-  @media (prefers-reduced-motion: reduce) { #kelvin .guy { animation: none; } }
-
   /* ---------- mobile ---------- */
   @media (max-width: 720px) {
     .window { border-radius: 0; }
@@ -693,7 +640,6 @@
     #tray .netlbl { display: none; }
     .ed-body .shots { grid-template-columns: 1fr; }
     .ed-body { padding: 14px 15px 22px; }
-    #kelvin { display: none !important; }   /* no room for him on a phone */
   }
 </style>
 
@@ -715,39 +661,6 @@
     <small>Dixie Technical College &middot; St. George, UT</small>
   </div>
   <div id="menu-items"></div>
-</div>
-
-<div id="kelvin" aria-live="polite">
-  <div class="bubble">
-    <p></p>
-    <div class="acts">
-      <button class="next">Next tip</button>
-      <button class="go">Go away</button>
-    </div>
-  </div>
-  <button class="guy" title="Kelvin" aria-label="Kelvin: next tip">
-    <svg viewBox="0 0 72 104" aria-hidden="true">
-      <defs>
-        <linearGradient id="kelvwire" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#eef3f7"/>
-          <stop offset=".45" stop-color="#a3b4c1"/>
-          <stop offset="1" stop-color="#64757f"/>
-        </linearGradient>
-      </defs>
-      <path d="M20 44 V26 a16 16 0 0 1 32 0 v56 a11 11 0 0 1-22 0 V34 a6 6 0 0 1 12 0 v44"
-            fill="none" stroke="url(#kelvwire)" stroke-width="8"
-            stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- Deliberately not symmetrical. Clippy was smug; Kelvin is doing his
-           best. The left eye is bigger, the right sits lower, and the brows
-           disagree about where they belong. -->
-      <ellipse class="e1" cx="28.5" cy="30" rx="8.2" ry="9.2" fill="#fff" stroke="#2c3338" stroke-width="1.6"/>
-      <ellipse class="e2" cx="44.6" cy="32.6" rx="6.7" ry="7.5" fill="#fff" stroke="#2c3338" stroke-width="1.6"/>
-      <circle class="p1" cx="29.4" cy="31" r="3.5" fill="#1b2024"/>
-      <circle class="p2" cx="45.2" cy="33.4" r="2.9" fill="#1b2024"/>
-      <path class="b1" d="M20 17.5 q8.5-5.5 16.5-1.5" fill="none" stroke="#2c3338" stroke-width="2.6" stroke-linecap="round"/>
-      <path class="b2" d="M38 22 q6.5-1.5 13 2" fill="none" stroke="#2c3338" stroke-width="2.4" stroke-linecap="round"/>
-    </svg>
-  </button>
 </div>
 
 <div id="taskbar">
@@ -823,9 +736,6 @@ The cart only sends the product ID and the options the customer picked. The
 browser never gets to tell the server what something costs. The server looks up
 the base price, adjusts it for choices such as wood species or dimensions,
 calculates tax, and creates the Square payment.
-
-You can change the displayed price in devtools if you want. Square will still
-charge the amount the server calculated.
 
 ## Tech Stack
 
@@ -2347,209 +2257,6 @@ Happy to walk through any of this code, including the parts that are private.
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeCtx(); });
 
   applyWallpaper(wpIndex);
-
-  /* ============ kelvin ============
-     A paperclip with googly eyes who lives in the corner and points at whatever
-     you're looking at. Self-contained: this block, the #kelvin markup, and the
-     kelvin CSS block are the whole of him. */
-  (function () {
-    const cl = document.getElementById("kelvin");
-    if (!cl) return;
-    const bubble = cl.querySelector(".bubble p");
-    const SEEN = "dw.kelvin";
-
-    // What's in front decides the tip, so he's pointing at whatever you're
-    // actually looking at rather than reciting a list.
-    const TIPS = {
-      term: [
-        "Try <code>grep -i postgres</code> — it searches every README at once.",
-        "<code>tree</code> prints the whole filesystem in one go.",
-        "<code>open family-hub</code> opens a project without leaving the terminal."
-      ],
-      fm: [
-        "<b>Ctrl+F</b> filters the folder you're in.",
-        "Screenshots have thumbnails now. Double-click one to see it full size.",
-        "The globe in a project folder is the real live site."
-      ],
-      doc: [
-        "These are the actual README files from each repo.",
-        "<b>Alt+Tab</b> switches windows if you've got a few open.",
-        "<b>Escape</b> closes whatever's in front."
-      ],
-      none: [
-        "Double-click <b>Projects</b> to start looking around.",
-        "Open <b>Konsole</b> if you'd rather type than click.",
-        "You can drag the desktop icons anywhere. They stay put.",
-        "Right-click the desktop to change the wallpaper."
-      ]
-    };
-
-    function context() {
-      const front = frontWin();
-      if (!front) return "none";
-      const el = front[1].el;
-      if (el.querySelector(".term")) return "term";
-      if (el.querySelector(".fm")) return "fm";
-      if (el.querySelector(".ed-body, .iv")) return "doc";
-      return "none";
-    }
-
-    let ctxKey = "none", i = 0, nags = 0, forced = null, locked = false, mute = false;
-    function say(advance) {
-      // While he's sulking nothing else gets to speak. Clicking "Go away" is a
-      // mousedown, and the focus-follow below would otherwise overwrite the
-      // line with a cheerful tip 60ms later.
-      if (mute) return;
-      // A forced line jumps the queue once, then normal tips resume.
-      if (forced) { bubble.innerHTML = forced; forced = null; return; }
-      const k = context();
-      if (k !== ctxKey) { ctxKey = k; i = 0; }        // new context, start at its first tip
-      else if (advance) i++;
-      const list = TIPS[ctxKey];
-      bubble.innerHTML = list[i % list.length];
-    }
-
-    let met = false;
-    function show() {
-      if (cl.classList.contains("on")) return;
-      // He introduces himself before he starts being helpful, regardless of
-      // which window happens to be in front when he turns up.
-      if (!met) {
-        met = true;
-        forced = "Hi. I'm Kelvin. It looks like you're browsing a portfolio.";
-      }
-      say(false);
-      cl.classList.add("on");
-    }
-    function hide(forGood) {
-      cl.classList.remove("on");
-      if (forGood) { try { localStorage.setItem(SEEN, "1"); } catch (err) {} }
-    }
-
-    cl.querySelector(".next").addEventListener("click", () => { cheerUp(); say(true); });
-
-    // Brows drop into a V the moment you dismiss him, and stay that way. Once
-    // you've tried to get rid of Kelvin he does not let it go.
-    const BROWS = { b1: cl.querySelector(".b1"), b2: cl.querySelector(".b2") };
-    // Brows driven down onto the eyes, not just tilted. One cue this small
-    // doesn't read, so the squint and the tremble carry it with them.
-    const CROSS = { b1: "M18 12.5 Q27.5 17 37.5 24.5", b2: "M37 25.5 Q45 19.5 53 13.5" };
-    const SQUINT = ["4.8", "3.9"];
-    const CALM = {
-      d1: BROWS.b1.getAttribute("d"),            d2: BROWS.b2.getAttribute("d"),
-      w1: BROWS.b1.getAttribute("stroke-width"), w2: BROWS.b2.getAttribute("stroke-width")
-    };
-    // Asking him for another tip is enough to patch things up: brows back up,
-    // eyes back open, and he starts following the cursor again.
-    function cheerUp() {
-      if (!locked) return;
-      BROWS.b1.setAttribute("d", CALM.d1);
-      BROWS.b2.setAttribute("d", CALM.d2);
-      BROWS.b1.setAttribute("stroke-width", CALM.w1);
-      BROWS.b2.setAttribute("stroke-width", CALM.w2);
-      EYES.forEach(e => { e.rest = e.ry; e.w.setAttribute("ry", e.ry); });
-      locked = false;
-    }
-    function sulk() {
-      BROWS.b1.setAttribute("d", CROSS.b1);
-      BROWS.b2.setAttribute("d", CROSS.b2);
-      BROWS.b1.setAttribute("stroke-width", "3.6");
-      BROWS.b2.setAttribute("stroke-width", "3.4");
-      EYES.forEach((e, n) => { e.rest = SQUINT[n]; e.w.setAttribute("ry", SQUINT[n]); });
-      // Pupils come off the cursor and lock dead ahead. He is looking at you
-      // now, not at where your mouse happens to be, and he stays that way.
-      locked = true;
-      EYES.forEach(e => {
-        e.p.setAttribute("cx", e.hx.toFixed(1));
-        e.p.setAttribute("cy", e.hy.toFixed(1));
-      });
-    }
-
-    // Dismissing Clippy never worked the first time, and that was the whole
-    // point of him. Kelvin glares for three seconds, leaves, and comes back
-    // once. The second dismissal sticks.
-    const goBtn = cl.querySelector(".go");
-    goBtn.addEventListener("click", () => {
-      if (nags > 0) { hide(true); return; }
-      nags = 1;
-      sulk();
-      mute = true;
-      bubble.innerHTML = "Fine.";
-      cl.classList.add("cross");
-      // Six seconds of being stared at, and only then does he start to fade.
-      setTimeout(() => {
-        cl.classList.add("leaving");
-        setTimeout(() => {
-          cl.classList.remove("leaving", "cross");
-          mute = false;
-          hide(false);
-          setTimeout(() => {
-            forced = "It looks like you're trying to get rid of me.";
-            goBtn.textContent = "Go away (really)";
-            show();
-          }, 40000);
-        }, 1400);
-      }, 4000);
-    });
-    cl.querySelector(".guy").addEventListener("click", () => { cheerUp(); say(true); });
-
-    // He follows you around: focusing a different kind of window re-points the
-    // tip, but only while he's already on screen.
-    document.addEventListener("mousedown", () => {
-      if (cl.classList.contains("on")) setTimeout(() => say(false), 60);
-    }, true);
-
-    /* ---- eyes ---- */
-    const svg = cl.querySelector(".guy svg");
-    const EYES = [
-      { w: svg.querySelector(".e1"), p: svg.querySelector(".p1"), hx: 29.4, hy: 31.0, reach: 3.0, bias: 0 },
-      // The right eye aims a little wide of wherever he's actually looking.
-      { w: svg.querySelector(".e2"), p: svg.querySelector(".p2"), hx: 45.2, hy: 33.4, reach: 2.3, bias: 3.5 }
-    ];
-    EYES.forEach(e => { e.ry = e.w.getAttribute("ry"); e.rest = e.ry; });
-
-    document.addEventListener("mousemove", ev => {
-      if (!cl.classList.contains("on") || locked) return;
-      const box = svg.getBoundingClientRect();
-      if (!box.width) return;
-      // Screen pixels -> the 72x104 user space the face is drawn in.
-      const mx = (ev.clientX - box.left) * (72 / box.width);
-      const my = (ev.clientY - box.top) * (104 / box.height);
-      EYES.forEach(e => {
-        const dx = mx - e.hx + e.bias, dy = my - e.hy;
-        const d = Math.sqrt(dx * dx + dy * dy) || 1;
-        const k = Math.min(d, e.reach) / d;
-        e.p.setAttribute("cx", (e.hx + dx * k).toFixed(1));
-        e.p.setAttribute("cy", (e.hy + dy * k).toFixed(1));
-      });
-    });
-
-    function blink() {
-      EYES.forEach(e => { e.w.setAttribute("ry", "1.2"); e.p.setAttribute("opacity", "0"); });
-      setTimeout(() => {
-        EYES.forEach(e => { e.w.setAttribute("ry", e.rest); e.p.setAttribute("opacity", "1"); });
-      }, 110);
-      setTimeout(blink, 2600 + Math.random() * 4400);   // irregular, so it reads as alive
-    }
-    setTimeout(blink, 3200);
-
-    let dismissed = false;
-    try { dismissed = localStorage.getItem(SEEN) === "1"; } catch (err) {}
-    if (!dismissed && window.innerWidth > 720) setTimeout(show, 6500);
-
-    // A way back, since "Go away" is permanent otherwise. Appended directly
-    // because MENU was already rendered by the time this runs.
-    const b = document.createElement("button");
-    b.className = "mitem";
-    b.innerHTML = I.chip + "<span>Kelvin</span>";
-    b.addEventListener("click", () => {
-      closeMenu();
-      try { localStorage.removeItem(SEEN); } catch (err) {}
-      cl.classList.remove("on");
-      show();
-    });
-    menuItems.appendChild(b);
-  })();
 
   /* ============ clock + boot ============ */
   const clock = document.getElementById("clock");
