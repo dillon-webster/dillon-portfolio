@@ -1,5 +1,6 @@
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231b1e20'/%3E%3Cpath d='M13 18l6 6-6 6M26 30h10' stroke='%233daee9' stroke-width='3.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Dillon Webster</title>
 
 <style>
@@ -280,10 +281,10 @@
     flex-wrap: wrap;
   }
   .term .art {
-    color: #e95420;
+    color: var(--accent);
     white-space: pre;
-    font-size: 9.5px;
-    line-height: 1.05;
+    font-size: 11px;
+    line-height: 1.15;
     flex: none;
     margin: 0;
   }
@@ -629,18 +630,256 @@
   }
   .wp.on .nm { color: var(--accent); font-weight: 600; }
 
-  /* ---------- mobile ---------- */
-  @media (max-width: 720px) {
-    .window { border-radius: 0; }
-    .places { display: none; }
-    .icon { width: 82px; font-size: 11.5px; }
-    .icon svg { width: 36px; height: 36px; }
-    #icons { flex-direction: row; flex-wrap: wrap; max-height: none; width: calc(100% - 28px); }
-    .task span { display: none; }
-    .task { padding: 0 11px; }
-    #tray .netlbl { display: none; }
-    .ed-body .shots { grid-template-columns: 1fr; }
-    .ed-body { padding: 14px 15px 22px; }
+  /* ---------- phone shell ---------- */
+  /* A second shell, not a reflow of the first. A desktop metaphor rests on
+     three things a phone doesn't have: a pointer precise enough for a 4px
+     resize grip, room for windows to overlap usefully, and a titlebar worth
+     dragging. So small screens get their own shell -- status bar, home
+     screen, one full-screen app at a time -- reading the same virtual
+     filesystem and the same markdown the desktop reads.
+
+     html.phone is set from JS off the same media query, so the two shells
+     can never both think they're on screen. */
+  #phone { display: none; }
+  html.phone #desktop,
+  html.phone #taskbar,
+  html.phone #ctx,
+  html.phone #menu { display: none !important; }
+  html.phone #phone {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--wall-a);
+  }
+
+  /* status bar */
+  #pstatus {
+    flex: none;
+    position: relative;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding: env(safe-area-inset-top) 15px 0;
+    box-sizing: content-box;
+    font: 600 12.5px/1 var(--ui);
+    color: var(--text);
+    background: rgba(0,0,0,.30);
+    backdrop-filter: blur(10px);
+    text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  }
+  #pstatus .pgap { flex: 1; }
+  #pstatus .pind { display: flex; align-items: center; gap: 7px; opacity: .9; }
+  #pstatus .pind svg { display: block; }
+
+  /* screen stack */
+  #pstage { position: relative; flex: 1; min-height: 0; }
+  .pscreen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    transform: translateX(100%);
+    transition: transform .26s cubic-bezier(.22,.61,.36,1);
+    will-change: transform;
+  }
+  .pscreen.in { transform: none; }
+  .pscreen.home { transform: none; transition: none; background: none; }
+
+  .pbar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 52px;
+    padding-right: 10px;
+    background: var(--win-bar);
+    border-bottom: 1px solid var(--edge);
+  }
+  .pback {
+    flex: none;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 10px;
+    background: none; color: var(--text);
+    cursor: pointer;
+  }
+  .pback svg { width: 20px; height: 20px; }
+  .pback:active { background: rgba(255,255,255,.09); }
+  .pbar .ptitle {
+    flex: 1; min-width: 0;
+    font: 600 15.5px var(--ui);
+    letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pbody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .pbody.flush { overflow: hidden; }
+
+  /* home screen */
+  .phome-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 16px 28px; }
+  .phero {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 15px;
+    background: rgba(27,30,32,.74);
+    backdrop-filter: blur(12px);
+  }
+  .phero img {
+    flex: none;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--edge-lt);
+  }
+  .phero .pwho { min-width: 0; }
+  .phero .pname { font-size: 18.5px; font-weight: 650; letter-spacing: -.015em; }
+  .phero .prole { margin-top: 3px; font-size: 12.5px; line-height: 1.35; color: var(--dim); }
+  .pbadge {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 8px; padding: 3px 9px;
+    border: 1px solid rgba(46,204,113,.42);
+    border-radius: 999px;
+    background: rgba(46,204,113,.14);
+    font: 600 11px var(--ui); color: var(--mint);
+  }
+  .pbadge i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+  .pquick { display: flex; gap: 9px; margin-top: 11px; }
+  .pquick a {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 46px;
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    background: rgba(42,46,50,.82);
+    backdrop-filter: blur(12px);
+    color: var(--text);
+    font: 600 13.5px var(--ui);
+    text-decoration: none;
+  }
+  .pquick a.primary { background: var(--accent); border-color: var(--accent); color: #0b1016; }
+  .pquick a:active { filter: brightness(1.18); }
+  .pquick svg { width: 17px; height: 17px; }
+
+  .pfeat { margin-top: 26px; }
+  .pfeat h2 {
+    margin: 0 0 9px 4px;
+    font: 600 11.5px var(--ui);
+    letter-spacing: .085em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-shadow: 0 1px 3px rgba(0,0,0,.8);
+  }
+  .pfeat-card {
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 15px;
+    background: rgba(27,30,32,.74);
+    backdrop-filter: blur(12px);
+  }
+  .pfeat-card .prow { padding: 11px 13px; }
+  .pfeat-card .prow:last-child { border-bottom: 0; }
+  .pfeat-card .pico, .pfeat-card .pico svg { width: 29px; height: 29px; }
+  .pfeat-card .prow .pt { font-size: 14px; }
+  .pfeat-card .prow .ps { font-size: 11px; }
+
+  .pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 0; margin-top: 24px; }
+  .papp {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    padding: 10px 2px 8px;
+    border: 0; border-radius: 13px;
+    background: none; color: var(--text);
+    font: 11.5px/1.25 var(--ui);
+    text-align: center; text-decoration: none;
+    cursor: pointer;
+  }
+  .papp svg { width: 44px; height: 44px; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.45)); }
+  .papp span { word-break: break-word; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  .papp:active { background: rgba(255,255,255,.09); }
+  .papp:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  /* list rows (projects) */
+  .plist { padding-bottom: 24px; }
+  .prow {
+    display: flex; align-items: center; gap: 13px;
+    width: 100%; padding: 13px 16px;
+    border: 0; border-bottom: 1px solid rgba(255,255,255,.055);
+    background: none; color: var(--text);
+    font: inherit; text-align: left;
+    cursor: pointer;
+  }
+  .prow:active { background: rgba(255,255,255,.055); }
+  .prow .pico { flex: none; display: block; width: 36px; height: 36px; }
+  .prow .pico svg { width: 36px; height: 36px; display: block; }
+  .prow .pmeta { flex: 1; min-width: 0; }
+  .prow .pt { display: block; font: 600 14.5px var(--ui); }
+  .prow .ps { display: block; margin-top: 3px; font: 11.5px/1.35 var(--mono); color: var(--faint); }
+  .prow .pchev { flex: none; width: 13px; height: 13px; color: var(--faint); }
+
+  /* a project's live site, offered before its README rather than buried in it */
+  .psite {
+    display: flex; align-items: center; gap: 8px;
+    margin: 14px 16px 0; padding: 12px 14px;
+    border: 1px solid rgba(61,174,233,.4);
+    border-radius: 12px;
+    background: rgba(61,174,233,.1);
+    color: var(--accent);
+    font: 600 13px var(--mono);
+    text-decoration: none;
+  }
+  .psite svg { flex: none; width: 15px; height: 15px; }
+  .psite .purl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Markdown reuses the Reader's typography. Scoped one level deeper than
+     .ed-body so these win regardless of source order. */
+  .pbody .pdoc { overflow: visible; padding: 16px 16px 34px; }
+  /* The Reader's monospace gives about 34 characters a line at phone width,
+     well under the 45-75 that reads comfortably, and these READMEs are
+     paragraphs rather than code. Prose switches to the UI font; headings and
+     the terminal stay mono so the shell still reads as one. */
+  .pbody .pdoc { font: 15px/1.62 var(--ui); }
+  .pbody .pdoc h1, .pbody .pdoc h2 { font-family: var(--mono); }
+  .pbody .pdoc h1 { font-size: 16px; }
+  .pbody .pdoc h2 { font-size: 13.5px; margin-top: 26px; }
+  .pbody .pdoc li { margin-bottom: 7px; }
+
+  /* full-screen screenshot */
+  .pscreen.pimg .pbody { display: flex; align-items: center; justify-content: center; background: #0b0d0e; }
+  .pscreen.pimg img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+
+  /* home pill */
+  #pnav {
+    flex: none;
+    position: relative;
+    z-index: 6;
+    display: flex; align-items: center; justify-content: center;
+    height: 34px;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: content-box;
+    background: rgba(0,0,0,.34);
+    backdrop-filter: blur(10px);
+  }
+  #phome {
+    display: flex; align-items: center; justify-content: center;
+    width: 140px; height: 34px;
+    padding: 0; border: 0;
+    background: none; cursor: pointer;
+  }
+  #phome .pill { width: 112px; height: 4px; border-radius: 999px; background: rgba(255,255,255,.5); }
+  #phome:active .pill { background: rgba(255,255,255,.85); }
+
+  html.phone .ed-body .shots { grid-template-columns: 1fr; }
+  html.phone .ed-body { padding: 14px 15px 22px; }
+  /* 16px is the threshold under which iOS zooms the viewport on focus. Only
+     the input needs it; output stays 13.5px so `tree` and `ls` keep their
+     columns. */
+  html.phone .term input { font-size: 16px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pscreen { transition: none; }
   }
 </style>
 
@@ -675,6 +914,18 @@
   </div>
 </div>
 
+<div id="phone">
+  <div id="pstatus">
+    <span id="ptime">--:--</span>
+    <span class="pgap"></span>
+    <span class="pind" aria-hidden="true"><svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="4.6" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/><rect x="9.2" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="13.8" y="0.5" width="3" height="11.5" rx="1" fill="currentColor" opacity=".35"/></svg><svg width="15" height="12" viewBox="0 0 15 12" fill="none"><path d="M1 4.2a9.4 9.4 0 0 1 13 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3.6 6.9a5.7 5.7 0 0 1 7.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="7.5" cy="10.1" r="1.3" fill="currentColor"/></svg><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x=".8" y=".8" width="20" height="10.4" rx="2.6" stroke="currentColor" stroke-width="1.2" opacity=".55"/><rect x="2.6" y="2.6" width="13" height="6.8" rx="1.5" fill="currentColor"/><path d="M22.4 4.2v3.6a2 2 0 0 0 0-3.6z" fill="currentColor" opacity=".55"/></svg></span>
+  </div>
+  <div id="pstage"></div>
+  <div id="pnav">
+    <button id="phome" aria-label="Home screen"><span class="pill"></span></button>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -688,7 +939,6 @@
     term: '<svg viewBox="0 0 48 48" fill="none"><rect x="4" y="8" width="40" height="32" rx="3" fill="#1b1e20" stroke="#2ecc71" stroke-width="2"/><path d="M12 19l6 5-6 5M23 29h11" stroke="#2ecc71" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     mail: '<svg viewBox="0 0 48 48" fill="none"><rect x="5" y="11" width="38" height="26" rx="3" fill="#31363b" stroke="#3daee9" stroke-width="2"/><path d="M6 13l18 13L42 13" stroke="#3daee9" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
     globe: '<svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" fill="#31363b" stroke="#3daee9" stroke-width="2"/><path d="M6 24h36M24 6c5 6 5 30 0 36M24 6c-5 6-5 30 0 36" stroke="#3daee9" stroke-width="1.7" fill="none"/></svg>',
-    chip: '<svg viewBox="0 0 48 48" fill="none"><rect x="12" y="12" width="24" height="24" rx="2" fill="#31363b" stroke="#da4453" stroke-width="2"/><path d="M19 19h10v10H19z" fill="#da4453" opacity=".5"/><path d="M18 12V6M30 12V6M18 42v-6M30 42v-6M12 18H6M12 30H6M42 18h-6M42 30h-6" stroke="#da4453" stroke-width="2" stroke-linecap="round"/></svg>',
     min: '<svg viewBox="0 0 12 12"><path d="M2 6h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
     max: '<svg viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
     x:   '<svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
@@ -697,6 +947,9 @@
     up:  '<svg viewBox="0 0 12 12"><path d="M6 9V3M3 6l3-3 3 3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     home:'<svg viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
     fold:'<svg viewBox="0 0 16 16" fill="none"><path d="M1.5 4a1 1 0 0 1 1-1h3.5l1.5 2h6a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+    stack: '<svg viewBox="0 0 48 48" fill="none"><path d="M24 6l16 7-16 7-16-7z" fill="#3daee9"/><path d="M8 22l16 7 16-7" stroke="#2980b9" stroke-width="2.6" stroke-linejoin="round"/><path d="M8 31l16 7 16-7" stroke="#1f6aa0" stroke-width="2.6" stroke-linejoin="round"/></svg>',
+    gear: '<svg viewBox="0 0 48 48" fill="none"><path d="M24 7l2.2 4.3 4.8-.7 1.3 4.7 4.5 1.8-1.4 4.6 3.3 3.5-3.3 3.5 1.4 4.6-4.5 1.8-1.3 4.7-4.8-.7L24 43l-2.2-4.3-4.8.7-1.3-4.7-4.5-1.8 1.4-4.6L9.3 24l3.3-3.5-1.4-4.6 4.5-1.8 1.3-4.7 4.8.7z" fill="#31363b" stroke="#3daee9" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="24" r="5.5" fill="#3daee9"/></svg>',
+    resume: '<svg viewBox="0 0 48 48" fill="none"><path d="M10 5h17l9 9v29a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="#31363b" stroke="#2ecc71" stroke-width="2"/><path d="M27 5v9h9" stroke="#2ecc71" stroke-width="2" fill="none"/><circle cx="18" cy="23" r="4" fill="#2ecc71"/><path d="M12 34c1.5-3.4 3.8-5 6-5s4.5 1.6 6 5" stroke="#2ecc71" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M28 21h7M28 27h7M28 33h4" stroke="#2ecc71" stroke-width="1.8" stroke-linecap="round"/></svg>',
     doc: '<svg viewBox="0 0 16 16" fill="none"><path d="M4 1.5h5l3 3V14a.5.5 0 0 1-.5.5h-7A.5.5 0 0 1 4 14V2a.5.5 0 0 1 .5-.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 1.5v3.5h3" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>',
   };
 
@@ -1362,20 +1615,11 @@ Happy to walk through any of this code, including the parts that are private.
 
   /* ============ terminal ============ */
   const ART = [
-    "    .-------------------------------.",
-    "    |  [###########]       (o) (o)  |",
-    "    |  [###########]                |",
-    "    |-------------------------------|",
-    "    |  [###########]       (o) (o)  |",
-    "    |  [###########]                |",
-    "    |-------------------------------|",
-    "    |  [###########]       (o) (o)  |",
-    "    |  [###########]                |",
-    "    |-------------------------------|",
-    "    |                               |",
-    "    |  dillonOS 1.0        . . . .  |",
-    "    |                               |",
-    "    '-------------------------------'"
+    "     _  _  _  _                 ___   ____  ",
+    "  __| |(_)| || |  ___   _ __   / _ \\ / ___| ",
+    " / _` || || || | / _ \\ | '_ \\ | | | |\\___ \\ ",
+    "| (_| || || || || (_) || | | || |_| | ___) |",
+    " \\__,_||_||_||_| \\___/ |_| |_| \\___/ |____/ "
   ].join("\n");
 
   function uptime() {
@@ -1412,7 +1656,9 @@ Happy to walk through any of this code, including the parts that are private.
       "</dl></div>";
   }
 
-  function openTerminal() {
+  /* The terminal itself, independent of what frames it: a window on the
+     desktop, a full-screen app on a phone. */
+  function buildTerminal() {
     const wrap = document.createElement("div");
     wrap.className = "term";
     wrap.insertAdjacentHTML("beforeend", fetchHTML());
@@ -1457,7 +1703,7 @@ Happy to walk through any of this code, including the parts that are private.
           "ls [dir]        list files",
           "cd &lt;dir&gt;        change directory  (cd .. to go up)",
           "cat &lt;file&gt;      print a file",
-          "open &lt;name&gt;     open a project in a window",
+          "open &lt;name&gt;     open a project",
           "grep [-i] &lt;pat&gt;  search every file",
           "find &lt;name&gt;     find a file by name  (* allowed)",
           "tree            show everything at once",
@@ -1620,7 +1866,7 @@ Happy to walk through any of this code, including the parts that are private.
       clear() {
         [...wrap.querySelectorAll(".line, .fetch")].forEach(n => n.remove());
       },
-      exit() { closeWin("terminal"); },
+      exit() { if (phoneOn()) pback(); else closeWin("terminal"); },
       sudo() { out("dillon is not in the sudoers file. This incident will be reported.", "err"); },
       echo(arg) { out(esc(arg || "")); }
     };
@@ -1677,14 +1923,20 @@ Happy to walk through any of this code, including the parts that are private.
     });
 
     drawPrompt();
+    return { wrap: wrap, focus: () => input.focus() };
+  }
+
+  function openTerminal() {
+    if (phoneOn()) { pgo("terminal"); return; }
+    const term = buildTerminal();
     makeWindow("terminal", {
       title: "Terminal",
       icon: I.term,
-      content: wrap,
+      content: term.wrap,
       w: 760, h: 480,
-      onFocus: () => input.focus()
+      onFocus: term.focus
     });
-    input.focus();
+    term.focus();
   }
 
   /* ============ document viewer (Reader) ============ */
@@ -1705,6 +1957,7 @@ Happy to walk through any of this code, including the parts that are private.
   }
 
   function openDoc(id, node) {
+    if (phoneOn()) { pgoDoc(id, node); return; }
     const key = editorKey(id);
     let ed = editors.get(key);
 
@@ -1817,6 +2070,7 @@ Happy to walk through any of this code, including the parts that are private.
 
   /* ============ image viewer ============ */
   function openImage(node) {
+    if (phoneOn()) { pgo("img:" + (node.path || node.src), node); return; }
     const key = "img:" + (node.path || node.src);
     if (wins.has(key)) { focusWin(key); return; }
     const wrap = document.createElement("div");
@@ -1837,6 +2091,7 @@ Happy to walk through any of this code, including the parts that are private.
 
   /* ============ file manager ============ */
   function openFiles(startPath) {
+    if (phoneOn()) { pgo("projects"); return; }
     let cwd = startPath || [];
     const back = [], fwd = [];
 
@@ -2104,7 +2359,7 @@ Happy to walk through any of this code, including the parts that are private.
     ["About me", I.doc, () => openDoc("about.md", resolve(["about.md"]))],
     ["Skills", I.doc, () => openDoc("skills.md", resolve(["skills.md"]))],
     ["Contact", I.doc, () => openDoc("contact.md", resolve(["contact.md"]))],
-    ["Settings", I.chip, () => openWallpaperPicker()]
+    ["Settings", I.gear, () => openWallpaperPicker()]
   ];
   ORDER.forEach(k => MENU.push([P[k].name, I.doc, () =>
     openDoc("projects/" + k + "/README.md", resolve(["projects", k, "README.md"]))]));
@@ -2205,13 +2460,17 @@ Happy to walk through any of this code, including the parts that are private.
     if (!isNaN(saved) && WALLPAPERS[saved]) wpIndex = saved;
   } catch (e) {}
 
+  // Looked up rather than closed over, so this stays callable before the
+  // phone shell's own references exist.
   function applyWallpaper(i) {
     wpIndex = i;
     desktop.style.background = WALLPAPERS[i][1];
+    const ph = document.getElementById("phone");
+    if (ph) ph.style.background = WALLPAPERS[i][1];
     try { localStorage.setItem("wp", String(i)); } catch (e) {}
   }
 
-  function openWallpaperPicker() {
+  function buildWallpaperGrid() {
     const wrap = document.createElement("div");
     wrap.className = "wp-grid";
     WALLPAPERS.forEach((w, i) => {
@@ -2225,7 +2484,13 @@ Happy to walk through any of this code, including the parts that are private.
       });
       wrap.appendChild(b);
     });
-    makeWindow("wallpaper", { title: "Settings", icon: I.chip, content: wrap, w: 480, h: 430 });
+    return wrap;
+  }
+
+  function openWallpaperPicker() {
+    if (phoneOn()) { pgo("settings"); return; }
+    makeWindow("wallpaper", { title: "Settings", icon: I.gear,
+                              content: buildWallpaperGrid(), w: 480, h: 430 });
   }
 
   /* right-click the desktop, like a real one */
@@ -2253,11 +2518,339 @@ Happy to walk through any of this code, including the parts that are private.
 
   applyWallpaper(wpIndex);
 
+  /* ============ phone shell ============ */
+  /* Routes are plain strings so the back stack, the hardware back button and
+     the swipe gesture all agree on one notion of "where am I". Screens are
+     built on push and thrown away on pop; home is built once and never
+     popped. */
+
+  // Narrow, or a touch device with no vertical room -- a phone turned
+  // sideways is 844px wide and still has no business showing a window
+  // manager. The pointer test keeps a short desktop window out of it.
+  const phoneMQ = window.matchMedia(
+    "(max-width: 720px), (max-height: 500px) and (pointer: coarse)");
+  const phoneOn = () => phoneMQ.matches;
+
+  const pstageEl = document.getElementById("pstage");
+  const pstack = [];
+  let phoneBuilt = false;
+
+  const PEXT = '<svg viewBox="0 0 16 16" fill="none"><path d="M6.5 3H3.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1H12a1 1 0 0 0 1-1V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9.5 2.5h4v4M13 3L7.5 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const PMAIL = '<svg viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 4.5l6 4.5 6-4.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
+
+  /* contact.md stays the single source for these, so the home screen can't
+     drift from the document or the resume. */
+  function contactField(title) {
+    const m = CONTACT.match(new RegExp("## " + title + "\\s*\\n+([^\\n]+)", "i"));
+    return m ? m[1].trim() : "";
+  }
+
+  /* The home grid says "About"; the file it opens is called about.md. The
+     app bar follows the label that was tapped. */
+  const PDOC_TITLES = { "about.md": "About", "skills.md": "Skills", "contact.md": "Contact" };
+
+  /* ---- navigation ---- */
+  function pgo(route, payload) {
+    if (!phoneBuilt) pinit();
+    const el = pbuild(route, payload);
+    if (!el) return;
+    pstageEl.appendChild(el);
+    // Next frame, so the transition has a start value to animate from.
+    requestAnimationFrame(() => el.classList.add("in"));
+    pwireSwipe(el);
+    pstack.push({ route: route, el: el });
+    try { history.pushState({ pdepth: pstack.length }, ""); } catch (err) {}
+  }
+
+  function pgoDoc(id, node) {
+    const parts = id.split("/");
+    if (parts[0] === "projects" && parts[1]) pgo("proj:" + parts[1]);
+    else pgo("doc:" + parts[parts.length - 1], node);
+  }
+
+  function ppop() {
+    const top = pstack.pop();
+    if (!top) return;
+    top.el.classList.remove("in");
+    setTimeout(() => top.el.remove(), 320);
+  }
+
+  // Back always goes through history, so a swipe, the chevron and the phone's
+  // own back button are the same code path and can't disagree about depth.
+  function pback() { if (pstack.length) history.back(); }
+  function phomeGo() { if (pstack.length) history.go(-pstack.length); }
+
+  window.addEventListener("popstate", e => {
+    const want = (e.state && e.state.pdepth) || 0;
+    while (pstack.length > want) ppop();
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && phoneOn() && pstack.length) pback();
+  });
+
+  /* Edge swipe only: starting anywhere else would fight the scroller, and a
+     list that won't scroll is a worse bug than a missing gesture. */
+  function pwireSwipe(el) {
+    let sx = 0, sy = 0, dx = 0, active = false;
+    const reset = () => { active = false; el.style.transition = ""; el.style.transform = ""; };
+    el.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1 || e.touches[0].clientX > 32) return;
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      dx = 0;
+      active = true;
+      el.style.transition = "none";
+    }, { passive: true });
+    el.addEventListener("touchmove", e => {
+      if (!active) return;
+      dx = e.touches[0].clientX - sx;
+      if (Math.abs(e.touches[0].clientY - sy) > Math.abs(dx) + 12) { reset(); return; }
+      el.style.transform = "translateX(" + Math.max(0, dx) + "px)";
+    }, { passive: true });
+    el.addEventListener("touchend", () => {
+      if (!active) return;
+      const leaving = dx > 70;
+      reset();
+      if (leaving) pback();
+    });
+    el.addEventListener("touchcancel", reset);
+  }
+
+  /* ---- screens ---- */
+  function pbuild(route, payload) {
+    if (route === "projects") return pscreenProjects();
+    if (route === "terminal") return pscreenTerminal();
+    if (route === "settings") return pscreenSettings();
+    if (route.indexOf("doc:") === 0) {
+      const name = route.slice(4);
+      const node = payload || resolve([name]);
+      if (!node || !node.md) return null;
+      return pscreenDoc(PDOC_TITLES[name] || node.title, node.md);
+    }
+    if (route.indexOf("proj:") === 0) {
+      const k = route.slice(5);
+      const node = resolve(["projects", k, "README.md"]);
+      return node ? pscreenDoc(P[k].name, node.md, P[k]) : null;
+    }
+    if (route.indexOf("img:") === 0 && payload) return pscreenImage(payload);
+    return null;
+  }
+
+  function pscreen(title, opts) {
+    const el = document.createElement("section");
+    el.className = "pscreen";
+    el.setAttribute("role", "region");
+    el.setAttribute("aria-label", title);
+    const back = document.createElement("button");
+    back.className = "pback";
+    back.setAttribute("aria-label", "Back");
+    back.innerHTML = I.back;
+    back.addEventListener("click", pback);
+    const h = document.createElement("span");
+    h.className = "ptitle";
+    h.textContent = title;
+    const bar = document.createElement("div");
+    bar.className = "pbar";
+    bar.appendChild(back);
+    bar.appendChild(h);
+    const body = document.createElement("div");
+    body.className = "pbody" + (opts && opts.flush ? " flush" : "");
+    el.appendChild(bar);
+    el.appendChild(body);
+    return el;
+  }
+
+  /* Screenshots open full screen on their own route, so the back button
+     closes the picture rather than the document behind it. */
+  function pwireShots(root) {
+    root.querySelectorAll("img[data-shot]").forEach(im => {
+      im.addEventListener("click", () => openImage({
+        src: im.getAttribute("data-shot"),
+        title: im.getAttribute("data-shot").split("/").pop(),
+        alt: im.getAttribute("alt")
+      }));
+    });
+  }
+
+  function pscreenDoc(title, md, proj) {
+    const el = pscreen(title);
+    const body = el.querySelector(".pbody");
+    if (proj && proj.site) {
+      const a = document.createElement("a");
+      a.className = "psite";
+      a.href = proj.site;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.innerHTML = PEXT + '<span class="purl">' +
+        esc(proj.site.replace(/^https?:\/\//, "").replace(/\/$/, "")) + "</span>";
+      body.appendChild(a);
+    }
+    const doc = document.createElement("div");
+    doc.className = "ed-body pdoc";
+    // The app bar already names the document; printing the markdown H1 under
+    // it would just say the same words twice.
+    doc.innerHTML = renderMd(md.replace(/^#[^\n]*\n/, ""));
+    pwireShots(doc);
+    body.appendChild(doc);
+    return el;
+  }
+
+  function pprojRow(k) {
+    const b = document.createElement("button");
+    b.className = "prow";
+    b.innerHTML =
+      '<span class="pico">' + I.folderBlue + "</span>" +
+      '<span class="pmeta"><span class="pt">' + esc(P[k].name) + "</span>" +
+      '<span class="ps">' + esc(P[k].stack) + "</span></span>" +
+      '<span class="pchev">' + I.fwd + "</span>";
+    b.addEventListener("click", () => pgo("proj:" + k));
+    return b;
+  }
+
+  function pscreenProjects() {
+    const el = pscreen("Projects");
+    const list = document.createElement("div");
+    list.className = "plist";
+    ORDER.forEach(k => list.appendChild(pprojRow(k)));
+    el.querySelector(".pbody").appendChild(list);
+    return el;
+  }
+
+  function pscreenTerminal() {
+    const el = pscreen("Terminal", { flush: true });
+    const term = buildTerminal();
+    el.querySelector(".pbody").appendChild(term.wrap);
+    // Focusing mid-transition makes the keyboard shove a half-positioned
+    // screen around, so wait for it to land.
+    setTimeout(term.focus, 340);
+    return el;
+  }
+
+  function pscreenSettings() {
+    const el = pscreen("Settings");
+    el.querySelector(".pbody").appendChild(buildWallpaperGrid());
+    return el;
+  }
+
+  function pscreenImage(node) {
+    const el = pscreen(node.title || "Image", { flush: true });
+    el.classList.add("pimg");
+    const img = document.createElement("img");
+    img.src = IMG[node.src] || node.src;
+    img.alt = node.alt || node.title || "";
+    const body = el.querySelector(".pbody");
+    body.appendChild(img);
+    body.addEventListener("click", pback);
+    return el;
+  }
+
+  function pscreenHome() {
+    const el = document.createElement("section");
+    el.className = "pscreen home in";
+    el.setAttribute("role", "region");
+    el.setAttribute("aria-label", "Home screen");
+
+    const email = contactField("Email");
+    const github = contactField("GitHub");
+
+    const hero = document.createElement("div");
+    hero.className = "phero";
+    hero.innerHTML =
+      '<img src="' + (IMG["me.webp"] || "") + '" alt="Dillon Webster">' +
+      '<div class="pwho">' +
+        '<div class="pname">Dillon Webster</div>' +
+        '<div class="prole">Software development student<br>St. George, Utah</div>' +
+        '<span class="pbadge"><i></i>Open to internships</span>' +
+      "</div>";
+
+    const quick = document.createElement("div");
+    quick.className = "pquick";
+    quick.innerHTML =
+      '<a class="primary" href="resume.html">' + PEXT + "Resume</a>" +
+      '<a href="mailto:' + esc(email) + '">' + PMAIL + "Email</a>";
+
+    const grid = document.createElement("div");
+    grid.className = "pgrid";
+    [
+      ["About",    I.file,       () => pgo("doc:about.md")],
+      ["Skills",   I.stack,      () => pgo("doc:skills.md")],
+      ["Projects", I.folder,     () => pgo("projects")],
+      ["Terminal", I.term,       () => pgo("terminal")],
+      ["Contact",  I.mail,       () => pgo("doc:contact.md")],
+      ["Resume",   I.resume,     { href: "resume.html" }],
+      ["GitHub",   I.globe,      { href: github, ext: true }],
+      ["Settings", I.gear,       () => pgo("settings")]
+    ].forEach(([label, icon, action]) => {
+      const node = typeof action === "function"
+        ? document.createElement("button")
+        : document.createElement("a");
+      node.className = "papp";
+      node.innerHTML = icon + "<span>" + esc(label) + "</span>";
+      if (typeof action === "function") node.addEventListener("click", action);
+      else {
+        node.href = action.href;
+        if (action.ext) { node.target = "_blank"; node.rel = "noopener"; }
+      }
+      grid.appendChild(node);
+    });
+
+    // The work itself, on the home screen. Someone who opens this on a
+    // phone is usually here to see what he has built, and making them find
+    // the Projects icon first is a step that buys nothing.
+    const feat = document.createElement("div");
+    feat.className = "pfeat";
+    feat.innerHTML = "<h2>Projects</h2>";
+    const card = document.createElement("div");
+    card.className = "pfeat-card";
+    ORDER.forEach(k => card.appendChild(pprojRow(k)));
+    feat.appendChild(card);
+
+    const body = document.createElement("div");
+    body.className = "phome-body";
+    body.appendChild(hero);
+    body.appendChild(quick);
+    body.appendChild(grid);
+    body.appendChild(feat);
+    el.appendChild(body);
+    return el;
+  }
+
+  function pinit() {
+    if (phoneBuilt) return;
+    phoneBuilt = true;
+    pstageEl.appendChild(pscreenHome());
+    try { history.replaceState({ pdepth: 0 }, ""); } catch (err) {}
+  }
+
+  document.getElementById("phome").addEventListener("click", phomeGo);
+
+  /* One source of truth for which shell is up: the media query sets the class,
+     and phoneOn() reads the same query. */
+  function syncShell() {
+    document.documentElement.classList.toggle("phone", phoneOn());
+    if (phoneOn()) pinit();
+  }
+  syncShell();
+  const onShellChange = () => {
+    syncShell();
+    // Coming back to the desktop from a narrow window leaves it bare.
+    if (!phoneOn() && !wins.size) openTerminal();
+  };
+  if (phoneMQ.addEventListener) phoneMQ.addEventListener("change", onShellChange);
+  else if (phoneMQ.addListener) phoneMQ.addListener(onShellChange);
+
   /* ============ clock + boot ============ */
   const clock = document.getElementById("clock");
+  const ptimeEl = document.getElementById("ptime");
   function tick() {
-    clock.textContent = new Date().toLocaleString(undefined, {
+    const now = new Date();
+    clock.textContent = now.toLocaleString(undefined, {
       weekday: "short", day: "numeric", month: "short",
+      hour: "numeric", minute: "2-digit"
+    });
+    // A phone status bar shows the time and nothing else.
+    ptimeEl.textContent = now.toLocaleTimeString(undefined, {
       hour: "numeric", minute: "2-digit"
     });
   }
@@ -2268,7 +2861,9 @@ Happy to walk through any of this code, including the parts that are private.
   setTimeout(() => {
     boot.classList.add("gone");
     setTimeout(() => boot.remove(), 500);
-    openTerminal();
+    // The desktop opens a terminal the way a session with autostart would.
+    // The phone lands on its home screen, like a phone.
+    if (!phoneOn()) openTerminal();
   }, 1250);
 
 })();
