@@ -1522,8 +1522,15 @@ Happy to walk through any of this code, including the parts that are private.
     el.className = "window focused" + (small ? " max" : "");
     el.style.width = w + "px";
     el.style.height = h + "px";
-    el.style.left = Math.max(12, Math.round((window.innerWidth - w) / 2) - 90 + off) + "px";
-    el.style.top  = Math.max(12, Math.round((window.innerHeight - 46 - h) / 2) - 40 + off) + "px";
+    // opts.x/y place a window deliberately (the desktop's "Open Terminal
+    // here"); anything else cascades off the centre so stacked windows don't
+    // land on top of each other. Both are clamped on screen.
+    el.style.left = (opts.x != null
+      ? Math.max(8, Math.min(opts.x, window.innerWidth - w - 8))
+      : Math.max(12, Math.round((window.innerWidth - w) / 2) - 90 + off)) + "px";
+    el.style.top  = (opts.y != null
+      ? Math.max(8, Math.min(opts.y, window.innerHeight - 46 - h - 8))
+      : Math.max(12, Math.round((window.innerHeight - 46 - h) / 2) - 40 + off)) + "px";
     el.style.zIndex = ++zTop;
     el.setAttribute("role", "dialog");
     el.setAttribute("aria-label", opts.title);
@@ -1671,6 +1678,9 @@ Happy to walk through any of this code, including the parts that are private.
     let cwd = [];
     const history = [];
     let hIdx = 0;
+    // Set by whoever frames this terminal: a window on the desktop, a screen
+    // on a phone. `exit` shouldn't have to know which.
+    let onExit = null;
 
     const row = document.createElement("div");
     row.className = "row";
@@ -1866,7 +1876,7 @@ Happy to walk through any of this code, including the parts that are private.
       clear() {
         [...wrap.querySelectorAll(".line, .fetch")].forEach(n => n.remove());
       },
-      exit() { if (phoneOn()) pback(); else closeWin("terminal"); },
+      exit() { if (onExit) onExit(); },
       sudo() { out("dillon is not in the sudoers file. This incident will be reported.", "err"); },
       echo(arg) { out(esc(arg || "")); }
     };
@@ -1923,17 +1933,34 @@ Happy to walk through any of this code, including the parts that are private.
     });
 
     drawPrompt();
-    return { wrap: wrap, focus: () => input.focus() };
+    return {
+      wrap: wrap,
+      focus: () => input.focus(),
+      setExit: fn => { onExit = fn; }
+    };
   }
 
-  function openTerminal() {
+  /* Every launch is a new terminal, the way a real session behaves: the icon,
+     the menu and the desktop's own context menu each give you another one
+     rather than raising the one already open. Numbers are reused as windows
+     close, so closing the second of three doesn't leave you at "Terminal 4". */
+  function nextTermNo() {
+    for (let n = 1; ; n++) if (!wins.has("terminal:" + n)) return n;
+  }
+
+  function openTerminal(at) {
     if (phoneOn()) { pgo("terminal"); return; }
+    const n = nextTermNo();
+    const id = "terminal:" + n;
     const term = buildTerminal();
-    makeWindow("terminal", {
-      title: "Terminal",
+    term.setExit(() => closeWin(id));
+    makeWindow(id, {
+      title: n === 1 ? "Terminal" : "Terminal " + n,
       icon: I.term,
       content: term.wrap,
       w: 760, h: 480,
+      x: at && at.x,
+      y: at && at.y,
       onFocus: term.focus
     });
     term.focus();
@@ -2501,7 +2528,7 @@ Happy to walk through any of this code, including the parts that are private.
     e.preventDefault();
     ctx.innerHTML = "";
     [["Configure Desktop and Wallpaper…", openWallpaperPicker],
-     ["Open Terminal here", openTerminal],
+     ["Open Terminal here", () => openTerminal({ x: e.clientX, y: e.clientY })],
      ["Reset icon positions", resetIcons]].forEach(([label, fn]) => {
       const b = document.createElement("button");
       b.className = "mitem";
@@ -2720,6 +2747,7 @@ Happy to walk through any of this code, including the parts that are private.
   function pscreenTerminal() {
     const el = pscreen("Terminal", { flush: true });
     const term = buildTerminal();
+    term.setExit(pback);
     el.querySelector(".pbody").appendChild(term.wrap);
     // Focusing mid-transition makes the keyboard shove a half-positioned
     // screen around, so wait for it to land.
