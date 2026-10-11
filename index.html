@@ -275,7 +275,9 @@
   }
   .term .fetch {
     display: flex;
-    align-items: flex-start;
+    /* The logo is five rows against fifteen of system info, so top-aligning
+       it left it stranded at the top of the block. */
+    align-items: center;
     gap: 26px;
     margin: 4px 0 10px;
     flex-wrap: wrap;
