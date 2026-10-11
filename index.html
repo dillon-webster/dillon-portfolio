@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dillon Webster</title>
 
 <style>
@@ -644,9 +645,9 @@
 </style>
 
 <div id="boot">
-  <div class="logo">K<span style="color:#eff0f1">ubuntu</span></div>
+  <div class="logo">dillon<span style="color:#eff0f1">OS</span></div>
   <div class="bar"><i></i></div>
-  <div class="msg">starting plasma session&hellip;</div>
+  <div class="msg">starting session&hellip;</div>
 </div>
 
 <div id="desktop">
@@ -1147,7 +1148,7 @@ Happy to walk through any of this code, including the parts that are private.
     return html;
   }
 
-  /* Kate-ish highlighting for the raw source view */
+  /* Editor-ish highlighting for the raw source view */
   function highlightMd(src) {
     return src.split("\n").map(line => {
       const e = esc(line);
@@ -1361,26 +1362,20 @@ Happy to walk through any of this code, including the parts that are private.
 
   /* ============ terminal ============ */
   const ART = [
-    "            .-/+oossssoo+/-.",
-    "        `:+ssssssssssssssssss+:`",
-    "      -+ssssssssssssssssssyyssss+-",
-    "    .ossssssssssssssssssdMMMNysssso.",
-    "   /ssssssssssshdmmNNmmyNMMMMhssssss/",
-    "  +ssssssssshmydMMMMMMMNddddyssssssss+",
-    " /sssssssshNMMMyhhyyyyhmNMMMNhssssssss/",
-    ".ssssssssdMMMNhsssssssssshNMMMdssssssss.",
-    "+sssshhhyNMMNyssssssssssssyNMMMysssssss+",
-    "ossyNMMMNyMMhsssssssssssssshmmmhssssssso",
-    "ossyNMMMNyMMhsssssssssssssshmmmhssssssso",
-    "+sssshhhyNMMNyssssssssssssyNMMMysssssss+",
-    ".ssssssssdMMMNhsssssssssshNMMMdssssssss.",
-    " /sssssssshNMMMyhhyyyyhdNMMMNhssssssss/",
-    "  +sssssssssdmydMMMMMMMMddddyssssssss+",
-    "   /ssssssssssshdmNNNNmyNMMMMhssssss/",
-    "    .ossssssssssssssssssdMMMNysssso.",
-    "      -+sssssssssssssssssyyyssss+-",
-    "        `:+ssssssssssssssssss+:`",
-    "            .-/+oossssoo+/-."
+    "    .-------------------------------.",
+    "    |  [###########]       (o) (o)  |",
+    "    |  [###########]                |",
+    "    |-------------------------------|",
+    "    |  [###########]       (o) (o)  |",
+    "    |  [###########]                |",
+    "    |-------------------------------|",
+    "    |  [###########]       (o) (o)  |",
+    "    |  [###########]                |",
+    "    |-------------------------------|",
+    "    |                               |",
+    "    |  dillonOS 1.0        . . . .  |",
+    "    |                               |",
+    "    '-------------------------------'"
   ].join("\n");
 
   function uptime() {
@@ -1393,18 +1388,18 @@ Happy to walk through any of this code, including the parts that are private.
 
   function fetchHTML() {
     const rows = [
-      ["OS", "Kubuntu 24.04 LTS x86_64"],
+      ["OS", "dillonOS 1.0 x86_64"],
       ["Host", "dillon-pc"],
       ["Kernel", "6.8.0-45-generic"],
       ["Uptime", uptime()],
       ["Packages", "2043 (dpkg)"],
       ["Shell", "bash 5.2.21"],
       ["Resolution", window.innerWidth + "x" + window.innerHeight],
-      ["DE", "Plasma 5.27.11"],
-      ["WM", "KWin"],
-      ["Theme", "Breeze Dark"],
-      ["Icons", "Breeze Dark"],
-      ["Terminal", "konsole"],
+      ["DE", "dillonOS Shell 1.0"],
+      ["WM", "dwm.js"],
+      ["Theme", "Nightfall Dark"],
+      ["Icons", "Nightfall Dark"],
+      ["Terminal", "dterm"],
       ["Languages", "Python, TypeScript (learning)"],
       ["Email", "dillon.webster28@icloud.com"],
       ["GitHub", "github.com/dillon-webster"]
@@ -1683,7 +1678,7 @@ Happy to walk through any of this code, including the parts that are private.
 
     drawPrompt();
     makeWindow("terminal", {
-      title: "Konsole",
+      title: "Terminal",
       icon: I.term,
       content: wrap,
       w: 760, h: 480,
@@ -1692,19 +1687,19 @@ Happy to walk through any of this code, including the parts that are private.
     input.focus();
   }
 
-  /* ============ document viewer (Kate) ============ */
-  /* One editor per context. Home docs (about/skills/contact) share a Kate
+  /* ============ document viewer (Reader) ============ */
+  /* One editor per context. Home docs (about/skills/contact) share a Reader
      window; each project gets its own window titled after the project, so
      opening a README doesn't drag unrelated documents along with it. */
   const editors = new Map();
 
   function editorKey(id) {
     const parts = id.split("/");
-    return (parts[0] === "projects" && parts[1]) ? "proj:" + parts[1] : "kate";
+    return (parts[0] === "projects" && parts[1]) ? "proj:" + parts[1] : "reader";
   }
 
   function editorTitle(key) {
-    if (key === "kate") return "Kate";
+    if (key === "reader") return "Reader";
     const k = key.slice(5);
     return (P[k] && P[k].name) || k;
   }
@@ -1740,10 +1735,10 @@ Happy to walk through any of this code, including the parts that are private.
     } else {
       focusWin(key);
     }
-    drawKate(ed);
+    drawReader(ed);
   }
 
-  function drawKate(ed) {
+  function drawReader(ed) {
     if (!ed || !ed.el) return;
     if (!ed.tabs.length) { closeWin(ed.key); editors.delete(ed.key); return; }
     if (ed.active >= ed.tabs.length) ed.active = ed.tabs.length - 1;
@@ -1759,7 +1754,7 @@ Happy to walk through any of this code, including the parts that are private.
       const b = document.createElement("button");
       b.className = "ed-tab" + (i === ed.active ? " on" : "");
       b.innerHTML = I.doc + "<span>" + esc(t.title) + "</span>";
-      b.addEventListener("click", () => { ed.active = i; drawKate(ed); });
+      b.addEventListener("click", () => { ed.active = i; drawReader(ed); });
       const x = document.createElement("button");
       x.className = "tclose";
       x.innerHTML = I.x;
@@ -1768,7 +1763,7 @@ Happy to walk through any of this code, including the parts that are private.
         e.stopPropagation();
         ed.tabs.splice(i, 1);
         if (ed.active >= i && ed.active > 0) ed.active--;
-        drawKate(ed);
+        drawReader(ed);
       });
       b.appendChild(x);
       tabsEl.appendChild(b);
@@ -1782,7 +1777,7 @@ Happy to walk through any of this code, including the parts that are private.
     prev.setAttribute("aria-pressed", ed.mode === "preview" ? "true" : "false");
     prev.addEventListener("click", () => {
       ed.mode = ed.mode === "preview" ? "source" : "preview";
-      drawKate(ed);
+      drawReader(ed);
     });
     const save = document.createElement("button");
     save.className = "ed-act";
@@ -1986,12 +1981,12 @@ Happy to walk through any of this code, including the parts that are private.
     uBtn.addEventListener("click", () => { if (cwd.length) go(cwd.slice(0, -1)); });
 
     render();
-    makeWindow("files", { title: "Dolphin", icon: I.fold, content: wrap, w: 800, h: 500 });
+    makeWindow("files", { title: "Files", icon: I.fold, content: wrap, w: 800, h: 500 });
   }
 
   /* ============ desktop icons + menu ============ */
   const ICONS = [
-    ["Konsole",   I.term,  () => openTerminal()],
+    ["Terminal",  I.term,  () => openTerminal()],
     ["Projects",  I.folder,() => openFiles(["projects"])],
     ["about.md",  I.file,  () => openDoc("about.md", resolve(["about.md"]))],
     ["skills.md", I.file,  () => openDoc("skills.md", resolve(["skills.md"]))],
@@ -2104,12 +2099,12 @@ Happy to walk through any of this code, including the parts that are private.
   const menuItems = document.getElementById("menu-items");
   const launcher = document.getElementById("launcher");
   const MENU = [
-    ["Konsole", I.term, () => openTerminal()],
-    ["Dolphin", I.fold, () => openFiles([])],
+    ["Terminal", I.term, () => openTerminal()],
+    ["Files", I.fold, () => openFiles([])],
     ["About me", I.doc, () => openDoc("about.md", resolve(["about.md"]))],
     ["Skills", I.doc, () => openDoc("skills.md", resolve(["skills.md"]))],
     ["Contact", I.doc, () => openDoc("contact.md", resolve(["contact.md"]))],
-    ["Desktop Settings", I.chip, () => openWallpaperPicker()]
+    ["Settings", I.chip, () => openWallpaperPicker()]
   ];
   ORDER.forEach(k => MENU.push([P[k].name, I.doc, () =>
     openDoc("projects/" + k + "/README.md", resolve(["projects", k, "README.md"]))]));
@@ -2158,7 +2153,7 @@ Happy to walk through any of this code, including the parts that are private.
     box.select();
   });
 
-  // Super on its own opens the launcher, the way it does in Plasma. Any other
+  // Super on its own opens the launcher, the way a real session would. Any other
   // key in between means it was a modifier for something else, not a tap.
   let superTap = false;
   document.addEventListener("keydown", e => {
@@ -2178,11 +2173,11 @@ Happy to walk through any of this code, including the parts that are private.
 
   /* ============ wallpapers ============ */
   const WALLPAPERS = [
-    ["Breeze",
+    ["Nightfall",
      "radial-gradient(1200px 700px at 72% 18%, #2a4459 0%, transparent 62%)," +
      "radial-gradient(900px 600px at 12% 88%, #10262d 0%, transparent 60%)," +
      "linear-gradient(160deg, #14171a 0%, #1d2b38 100%)"],
-    ["Kubuntu",
+    ["Ember",
      "radial-gradient(880px 620px at 78% 22%, rgba(119,41,83,.85) 0%, transparent 62%)," +
      "radial-gradient(720px 520px at 18% 84%, rgba(233,84,32,.42) 0%, transparent 58%)," +
      "linear-gradient(155deg, #2c001e 0%, #16050f 100%)"],
@@ -2230,7 +2225,7 @@ Happy to walk through any of this code, including the parts that are private.
       });
       wrap.appendChild(b);
     });
-    makeWindow("wallpaper", { title: "Desktop Settings", icon: I.chip, content: wrap, w: 480, h: 430 });
+    makeWindow("wallpaper", { title: "Settings", icon: I.chip, content: wrap, w: 480, h: 430 });
   }
 
   /* right-click the desktop, like a real one */
